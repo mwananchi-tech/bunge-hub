@@ -10,9 +10,20 @@ const NAV_LINKS = [
   { to: "/about",    label: "About"    },
 ];
 
+function useShortcutLabel() {
+  const [label, setLabel] = useState("⌘K");
+  useEffect(() => {
+    const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform) ||
+                  navigator.userAgent.includes("Mac");
+    setLabel(isMac ? "⌘K" : "Ctrl+K");
+  }, []);
+  return label;
+}
+
 export function Nav() {
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
+  const shortcutLabel = useShortcutLabel();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -74,7 +85,7 @@ export function Nav() {
             </svg>
             <span className="hidden sm:inline">Search</span>
             <kbd className="hidden sm:inline text-xs px-1 rounded"
-                 style={{ border: "1px solid var(--color-border)" }}>⌘K</kbd>
+                 style={{ border: "1px solid var(--color-border)" }}>{shortcutLabel}</kbd>
           </button>
         </div>
       </header>
