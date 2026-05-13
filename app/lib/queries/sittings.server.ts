@@ -1,17 +1,27 @@
 import { db } from "~/lib/db.server";
 
+export async function countSittings({ house, year }: { house?: string; year?: number } = {}) {
+  const houseFilter = house ? db`AND house = ${house}` : db``;
+  const yearFilter  = year  ? db`AND EXTRACT(YEAR FROM date) = ${year}` : db``;
+  const [r] = await db`SELECT count(*)::int AS n FROM sittings WHERE TRUE ${houseFilter} ${yearFilter}`;
+  return r.n as number;
+}
+
 export async function listSittings({
   house,
+  year,
   page = 1,
   limit = 40,
-}: { house?: string; page?: number; limit?: number } = {}) {
+}: { house?: string; year?: number; page?: number; limit?: number } = {}) {
   const offset = (page - 1) * limit;
   const houseFilter = house ? db`AND house = ${house}` : db``;
+  const yearFilter  = year  ? db`AND EXTRACT(YEAR FROM date) = ${year}` : db``;
   return db`
     SELECT url, date, house, session_type, summary, pdf_url
     FROM sittings
     WHERE TRUE
     ${houseFilter}
+    ${yearFilter}
     ORDER BY date DESC
     LIMIT ${limit + 1} OFFSET ${offset}
   `;

@@ -91,6 +91,16 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
     ? (selected.sittingUrl.startsWith("http") ? selected.sittingUrl : `https://mzalendo.com${selected.sittingUrl}`)
     : null;
 
+  const transcriptSlug = selected?.sittingUrl
+    ? selected.sittingUrl.split("/").filter(Boolean).pop() ?? ""
+    : "";
+  const transcriptAnchor = selected?.sectionTitle
+    ? selected.sectionTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+    : "";
+  const transcriptUrl = transcriptSlug && transcriptAnchor
+    ? `/sittings/${transcriptSlug}#${transcriptAnchor}`
+    : transcriptSlug ? `/sittings/${transcriptSlug}` : null;
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       {/* Bill header */}
@@ -186,19 +196,19 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                   </div>
                 </div>
                 <div className="flex gap-2">
+                  {transcriptUrl && (
+                    <Link to={transcriptUrl}
+                          className="text-xs px-3 py-1.5 rounded"
+                          style={{ backgroundColor: "var(--color-accent)", color: "white" }}>
+                      Jump to debate
+                    </Link>
+                  )}
                   {sittingHref && (
                     <a href={sittingHref} target="_blank" rel="noopener noreferrer"
                        className="text-xs px-3 py-1.5 rounded transition-colors"
                        style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)", backgroundColor: "var(--color-bg)" }}>
-                      View sitting ↗
+                      mzalendo.com ↗
                     </a>
-                  )}
-                  {selected.sittingUrl && (
-                    <Link to={`/sittings/${encodeURIComponent(selected.sittingUrl.split("/").filter(Boolean).pop() ?? "")}`}
-                          className="text-xs px-3 py-1.5 rounded"
-                          style={{ backgroundColor: "var(--color-accent)", color: "white" }}>
-                      Full transcript
-                    </Link>
                   )}
                   <button onClick={() => setSelected(null)} className="text-xs px-2 py-1.5 rounded"
                           style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}>✕</button>
@@ -248,23 +258,18 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                     Summary
                   </div>
                   {selected.speakers?.[0]?.summary
-                    ? <p className="text-sm leading-relaxed">{selected.speakers[0].summary}</p>
+                    ? <MarkdownContent content={selected.speakers[0].summary} />
                     : (
                       <div>
                         <p className="text-sm mb-3" style={{ color: "var(--color-muted)" }}>
                           No AI summary yet for this debate segment.
                         </p>
-                        {selected.speakers?.[0]?.text && (
-                          <details className="text-sm">
-                            <summary className="cursor-pointer text-xs" style={{ color: "var(--color-muted)" }}>
-                              Show contribution text
-                            </summary>
-                            <p className="mt-2 text-xs leading-relaxed whitespace-pre-wrap"
-                               style={{ color: "var(--color-muted)" }}>
-                              {selected.speakers[0].text.slice(0, 600)}
-                              {selected.speakers[0].text.length > 600 ? "…" : ""}
-                            </p>
-                          </details>
+                        {transcriptUrl && (
+                          <Link to={transcriptUrl}
+                                className="text-xs hover:underline"
+                                style={{ color: "var(--color-accent)" }}>
+                            Read the full debate in the transcript →
+                          </Link>
                         )}
                       </div>
                     )

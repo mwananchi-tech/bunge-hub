@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/topics._index";
-import { listTopics } from "~/lib/queries/topics.server";
+import { listTopics, countTopics } from "~/lib/queries/topics.server";
 import { Pagination } from "~/components/Pagination";
 import { PageToolbar } from "~/components/PageToolbar";
 
@@ -11,15 +11,19 @@ export async function loader({ request }: Route.LoaderArgs) {
   const tab  = (url.searchParams.get("tab") ?? "qs") as "qs" | "hearings";
   const q    = url.searchParams.get("q") ?? undefined;
   const page = Number(url.searchParams.get("page") ?? 1);
-  const rows = await listTopics({ tab, q, page, limit: LIMIT });
+  const [rows, total] = await Promise.all([
+    listTopics({ tab, q, page, limit: LIMIT }),
+    countTopics({ tab, q }),
+  ]);
   const hasMore = rows.length > LIMIT;
-  return { topics: rows.slice(0, LIMIT), tab, q, page, hasMore, searchStr: url.searchParams.toString() };
+  const totalPages = Math.ceil(total / LIMIT);
+  return { topics: rows.slice(0, LIMIT), tab, q, page, hasMore, totalPages, searchStr: url.searchParams.toString() };
 }
 
 export function meta() { return [{ title: "Topics | Bunge Hub" }]; }
 
 export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
-  const { topics, tab, q, page, hasMore, searchStr } = loaderData;
+  const { topics, tab, q, page, hasMore, totalPages, searchStr } = loaderData;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
@@ -77,7 +81,7 @@ export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      <Pagination page={page} hasMore={hasMore} searchStr={searchStr} />
+      <Pagination page={page} hasMore={hasMore} totalPages={totalPages} searchStr={searchStr} />
     </div>
   );
 }

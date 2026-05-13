@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/bills._index";
-import { listBills, type BillSort } from "~/lib/queries/bills.server";
+import { listBills, countBills, type BillSort } from "~/lib/queries/bills.server";
 import { Pagination } from "~/components/Pagination";
 import { PageToolbar } from "~/components/PageToolbar";
 
@@ -18,19 +18,24 @@ const SORT_OPTIONS = [
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const url  = new URL(request.url);
-  const q    = url.searchParams.get("q") ?? undefined;
-  const sort = (url.searchParams.get("sort") ?? "recent") as BillSort;
-  const page = Number(url.searchParams.get("page") ?? 1);
-  const rows = await listBills({ q, sort, page, limit: LIMIT });
+  const url   = new URL(request.url);
+  const q     = url.searchParams.get("q") ?? undefined;
+  const sort  = (url.searchParams.get("sort") ?? "recent") as BillSort;
+  const house = url.searchParams.get("house") ?? undefined;
+  const page  = Number(url.searchParams.get("page") ?? 1);
+  const [rows, total] = await Promise.all([
+    listBills({ q, sort, house, page, limit: LIMIT }),
+    countBills({ q, house }),
+  ]);
   const hasMore = rows.length > LIMIT;
-  return { bills: rows.slice(0, LIMIT), q, sort, page, hasMore, searchStr: url.searchParams.toString() };
+  const totalPages = Math.ceil(total / LIMIT);
+  return { bills: rows.slice(0, LIMIT), q, sort, house, page, hasMore, totalPages, searchStr: url.searchParams.toString() };
 }
 
 export function meta() { return [{ title: "Bills | Bunge Hub" }]; }
 
 export default function BillsIndex({ loaderData }: Route.ComponentProps) {
-  const { bills, q, sort, page, hasMore, searchStr } = loaderData;
+  const { bills, q, sort, house, page, hasMore, totalPages, searchStr } = loaderData;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
@@ -44,6 +49,18 @@ export default function BillsIndex({ loaderData }: Route.ComponentProps) {
       <PageToolbar
         q={q}
         searchPlaceholder="Search bills…"
+        filterGroups={[
+          {
+            paramName: "house",
+            current: house ?? "",
+            pills: [
+              { value: "",                  label: "Both houses"       },
+              { value: "National Assembly", label: "National Assembly" },
+              { value: "Senate",            label: "Senate"            },
+            ],
+            preserveParams: { sort, q },
+          },
+        ]}
         sort={{ current: sort, options: SORT_OPTIONS }}
       />
 
@@ -99,7 +116,7 @@ export default function BillsIndex({ loaderData }: Route.ComponentProps) {
         })}
       </div>
 
-      <Pagination page={page} hasMore={hasMore} searchStr={searchStr} />
+      <Pagination page={page} hasMore={hasMore} totalPages={totalPages} searchStr={searchStr} />
     </div>
   );
 }

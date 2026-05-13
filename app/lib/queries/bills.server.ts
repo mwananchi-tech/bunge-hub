@@ -5,11 +5,13 @@ export type BillSort = "recent" | "most-debated" | "most-speeches" | "name";
 export async function listBills({
   q,
   sort = "recent",
+  house,
   page = 1,
   limit = 40,
-}: { q?: string; sort?: BillSort; page?: number; limit?: number } = {}) {
+}: { q?: string; sort?: BillSort; house?: string; page?: number; limit?: number } = {}) {
   const offset = (page - 1) * limit;
   const searchFilter = q ? db`AND b.name ILIKE ${`%${q}%`}` : db``;
+  const houseFilter  = house ? db`AND bm.house = ${house}` : db``;
   const orderBy =
     sort === "most-debated"  ? db`ORDER BY count(DISTINCT bm.sitting_id) DESC NULLS LAST, b.name` :
     sort === "most-speeches" ? db`ORDER BY sum(bm.speech_count) DESC NULLS LAST, b.name` :
@@ -26,10 +28,23 @@ export async function listBills({
     LEFT JOIN bill_mentions bm ON bm.bill_id = b.id
     WHERE TRUE
     ${searchFilter}
+    ${houseFilter}
     GROUP BY b.id
     ${orderBy}
     LIMIT ${limit + 1} OFFSET ${offset}
   `;
+}
+
+export async function countBills({ q, house }: { q?: string; house?: string } = {}) {
+  const searchFilter = q ? db`AND b.name ILIKE ${`%${q}%`}` : db``;
+  const houseFilter  = house ? db`AND bm.house = ${house}` : db``;
+  const [r] = await db`
+    SELECT count(DISTINCT b.id)::int AS n
+    FROM bills b
+    LEFT JOIN bill_mentions bm ON bm.bill_id = b.id
+    WHERE TRUE ${searchFilter} ${houseFilter}
+  `;
+  return r.n as number;
 }
 
 export async function getBill(id: string) {

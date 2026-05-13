@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, data } from "react-router";
 import { MarkdownContent } from "~/components/MarkdownContent";
 import type { Route } from "./+types/sittings.$slug";
@@ -147,7 +147,15 @@ function SectionBlock({ section, speakerMap }: { section: any; speakerMap: Recor
 
 function SubsectionBlock({ subsection, speakerMap }: { subsection: any; speakerMap: Record<string, any> }) {
   const count = subsection.contributions?.length ?? 0;
+  const id = subsectionId(subsection.title);
   const [open, setOpen] = useState(count <= 20);
+
+  // If this subsection is the URL anchor target, ensure it is open
+  useEffect(() => {
+    if (window.location.hash === `#${id}`) {
+      setOpen(true);
+    }
+  }, [id]);
 
   if (!subsection.title && count === 0) return null;
 

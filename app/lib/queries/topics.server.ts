@@ -30,6 +30,20 @@ export async function listTopics({
   `;
 }
 
+export async function countTopics({
+  tab = "qs",
+  q,
+}: { tab?: "qs" | "hearings"; q?: string } = {}) {
+  const types = tab === "hearings" ? HEARING_TYPES : QS_TYPES;
+  const searchFilter = q ? db`AND title ILIKE ${`%${q}%`}` : db``;
+  const [r] = await db`
+    SELECT count(*)::int AS n FROM topics
+    WHERE section_type IN (SELECT unnest(${types}::text[]))
+    ${searchFilter}
+  `;
+  return r.n as number;
+}
+
 export async function getTopic(id: string) {
   const [topic] = await db`
     SELECT t.*, s.date, s.house, s.session_type, s.url AS sitting_url
