@@ -93,6 +93,10 @@ export default function SittingDetail({ loaderData }: Route.ComponentProps) {
   );
 }
 
+export function subsectionId(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 function youtubeId(url: string): string {
   try {
     const u = new URL(url);
@@ -143,13 +147,13 @@ function SectionBlock({ section, speakerMap }: { section: any; speakerMap: Recor
 
 function SubsectionBlock({ subsection, speakerMap }: { subsection: any; speakerMap: Record<string, any> }) {
   const count = subsection.contributions?.length ?? 0;
-  // Open by default; only collapse large subsections (> 20 contributions)
   const [open, setOpen] = useState(count <= 20);
 
   if (!subsection.title && count === 0) return null;
 
   return (
-    <div className="pl-4" style={{ borderLeft: "2px solid var(--color-border)" }}>
+    <div id={subsectionId(subsection.title)}
+         className="pl-4" style={{ borderLeft: "2px solid var(--color-border)", scrollMarginTop: "5rem" }}>
       {subsection.title && (
         <button
           onClick={() => setOpen(v => !v)}
