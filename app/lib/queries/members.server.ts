@@ -26,7 +26,13 @@ export async function listMembers({
 }: { house?: string; sort?: MemberSort; q?: string; committee?: string; page?: number; limit?: number } = {}) {
   const offset = (page - 1) * limit;
   const houseFilter     = house ? db`AND m.house = ${house}` : db``;
-  const searchFilter    = q ? db`AND m.name ILIKE ${`%${q}%`}` : db``;
+  const searchFilter = q ? db`
+    AND (
+      m.name         ILIKE ${'%' + q + '%'} OR
+      m.party        ILIKE ${'%' + q + '%'} OR
+      m.constituency ILIKE ${'%' + q + '%'}
+    )
+  ` : db``;
   const committeeFilter = committee ? db`
     AND EXISTS (
       SELECT 1 FROM jsonb_array_elements_text(m.committees) AS c

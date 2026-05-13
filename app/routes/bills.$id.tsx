@@ -81,10 +81,17 @@ function buildFlow(journey: any[]): { nodes: Node[]; edges: Edge[] } {
 export default function BillDetail({ loaderData }: Route.ComponentProps) {
   const { bill, journey } = loaderData;
   const [selected, setSelected] = useState<any>(null);
+  const [shownCount, setShownCount] = useState(8);
   const { nodes, edges } = buildFlow(journey);
 
+  const BATCH = 8;
+
   const onNodeClick = useCallback((_: any, node: Node) => {
-    setSelected(s => s?.id === node.id ? null : node.data);
+    setSelected((s: any) => {
+      const next = s?.id === node.id ? null : node.data;
+      setShownCount(BATCH); // reset when switching nodes
+      return next;
+    });
   }, []);
 
   const sittingHref = selected?.sittingUrl
@@ -222,7 +229,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                     Contributors
                   </div>
                   <div className="space-y-3">
-                    {(selected.speakers ?? []).slice(0, 8).map((s: any, i: number) => (
+                    {(selected.speakers ?? []).slice(0, shownCount).map((s: any, i: number) => (
                       <div key={i} className="flex items-start gap-2.5">
                         {s.photo
                           ? <img src={s.photo} alt={s.name} className="w-8 h-8 rounded-full object-cover shrink-0"
@@ -244,10 +251,16 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                         <span className="text-xs shrink-0" style={{ color: "var(--color-muted)" }}>{s.speeches} sp.</span>
                       </div>
                     ))}
-                    {(selected.speakers ?? []).length > 8 && (
-                      <p className="text-xs" style={{ color: "var(--color-muted)" }}>
-                        +{selected.speakers.length - 8} more contributors
-                      </p>
+                    {shownCount < (selected.speakers ?? []).length && (
+                      <button
+                        onClick={() => setShownCount(c => c + BATCH)}
+                        className="text-xs w-full py-1.5 rounded transition-colors"
+                        style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)", backgroundColor: "var(--color-surface)" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "var(--color-accent)")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "var(--color-muted)")}
+                      >
+                        + {Math.min(BATCH, (selected.speakers ?? []).length - shownCount)} more contributors
+                      </button>
                     )}
                   </div>
                 </div>
