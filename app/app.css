@@ -1,0 +1,22 @@
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&family=Inter:opsz,wght@14..32,300..700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans:  "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg:      #FFFDF9;
+  --color-surface: #F5F2EC;
+  --color-border:  #E5E1D8;
+  --color-text:    #1C1917;
+  --color-muted:   #78716C;
+  --color-accent:  #9b3030;
+  --color-gold:    #C8A45F;
+}
+
+html, body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
