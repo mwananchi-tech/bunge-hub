@@ -16,7 +16,7 @@ The raw transcripts are fetched and parsed by [odnelazm](https://github.com/mwan
 
 Mzalendo itself is maintained by the **Mzalendo Trust**, a Kenyan non-profit that aggregates data from the official Kenya Hansard, the verbatim record of everything said in Parliament, published by the National Assembly and the Senate. Member profiles, photos, party affiliations, and committee memberships also come from Mzalendo's member performance tracker.
 
-Full credit and gratitude to the [Mzalendo Trust](https://mzalendo.com) for making this data publicly available.
+Full credit and gratitude to the [Mzalendo Trust](https://mzalendo.com) for making this data publicly available, and to the **Parliament of Kenya** for publishing the official Hansard record that makes all of this possible.
 
 ## How does it work?
 
