@@ -90,7 +90,7 @@ docker run -p 3000:3000 -e DATABASE_URL=postgres://... bunge-hub
 
 ## Contributing
 
-Issues and pull requests are welcome. The project uses the MIT licence.
+Issues and pull requests are welcome. The project is licensed under the GPL-3.0.
 
 - [Open an issue](https://github.com/mwananchi-tech/bunge-hub/issues/new)
 - [View open issues](https://github.com/mwananchi-tech/bunge-hub/issues)
