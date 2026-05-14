@@ -118,11 +118,16 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
               const clean = c
                 .replace(/^(The Chair|A member) of the /i, "")
                 .replace(/ committee\.?$/i, "");
+              const slug = clean.toLowerCase().trim();
               return (
-                <span key={i} className="text-xs px-2 py-1 rounded"
-                      style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}>
+                <Link key={i}
+                      to={`/members?committee=${encodeURIComponent(slug)}&house=${encodeURIComponent(m.house)}`}
+                      className="text-xs px-2 py-1 rounded transition-colors"
+                      style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--color-accent)")}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--color-border)")}>
                   {clean}
-                </span>
+                </Link>
               );
             })}
           </div>
