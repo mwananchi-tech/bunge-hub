@@ -45,6 +45,6 @@ If you spot something wrong, please [let us know on GitHub](https://github.com/m
 
 ## Open source
 
-Bunge Hub is open source and freely available. The code is on GitHub under the MIT licence. Contributions, bug reports, and suggestions are welcome.
+Bunge Hub is open source and freely available. The code is on GitHub under the [MIT licence](https://github.com/mwananchi-tech/bunge-hub/blob/main/LICENSE). Contributions, bug reports, and suggestions are welcome.
 
 - [mwananchi-tech/bunge-hub](https://github.com/mwananchi-tech/bunge-hub)
