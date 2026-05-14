@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, data } from "react-router";
 
 import { MarkdownContent } from "~/components/MarkdownContent";
@@ -28,8 +29,12 @@ function subsectionAnchor(title: string) {
     .replace(/^-|-$/g, "");
 }
 
+const INITIAL = 8;
+const BATCH = 8;
+
 export default function TopicDetail({ loaderData }: Route.ComponentProps) {
   const { topic: t, speakers } = loaderData;
+  const [shownCount, setShownCount] = useState(INITIAL);
 
   const sittingSlug = sittingSlugFromUrl(t.sittingUrl ?? "");
   const transcriptUrl = sittingSlug
@@ -41,7 +46,6 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
 
   const speakerSummaries = speakers.filter((s: any) => s.summary);
   const hasSummaries = speakerSummaries.length > 0;
-  // speakerSummaries is now [{summary, summaryModel, ...}] not [string]
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
@@ -153,7 +157,7 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
-        {speakers.map((s: any, i: number) => (
+        {speakers.slice(0, shownCount).map((s: any, i: number) => (
           <div key={i} className="flex items-center gap-3 py-3">
             {s.photoUrl ? (
               s.slug ? (
@@ -216,6 +220,21 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
           </p>
         )}
       </div>
+      {shownCount < speakers.length && (
+        <button
+          onClick={() => setShownCount((c) => c + BATCH)}
+          className="text-xs w-full mt-2 py-1.5 rounded transition-colors"
+          style={{
+            border: "1px solid var(--color-border)",
+            color: "var(--color-muted)",
+            backgroundColor: "var(--color-surface)",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-accent)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-muted)")}
+        >
+          + {Math.min(BATCH, speakers.length - shownCount)} more contributors
+        </button>
+      )}
 
       {/* Jump to transcript CTA */}
       {transcriptUrl && (

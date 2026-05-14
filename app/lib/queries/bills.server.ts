@@ -67,22 +67,34 @@ export async function getBillJourney(billId: string) {
            s.url AS sitting_url, s.session_type,
            json_agg(
              json_build_object(
-               'name',     coalesce(m.name, sp.name),
-               'slug',     m.slug,
-               'photo',    m.photo_url,
-               'party',    m.party,
-               'speeches', bms.speech_count,
-               'text',     bms.contributions_text,
-               'summary',  bms.summary,
-               'summaryModel', bms.summary_model
+               'name',     spk.name,
+               'slug',     spk.slug,
+               'photo',    spk.photo,
+               'party',    spk.party,
+               'speeches', spk.speeches,
+               'text',     spk.text,
+               'summary',  spk.summary,
+               'summaryModel', spk.summary_model
              )
-             ORDER BY bms.speech_count DESC
+             ORDER BY spk.speeches DESC
            ) AS speakers
     FROM bill_mentions bm
     JOIN sittings s ON s.id = bm.sitting_id
-    JOIN bill_mention_speakers bms ON bms.bill_mention_id = bm.id
-    JOIN speakers sp ON sp.id = bms.speaker_id
-    LEFT JOIN members m ON m.id = sp.member_id
+    JOIN (
+      SELECT bms.bill_mention_id,
+             coalesce(m.name, sp.name)              AS name,
+             m.slug,
+             m.photo_url                            AS photo,
+             m.party,
+             sum(bms.speech_count)::int             AS speeches,
+             string_agg(bms.contributions_text, E'\n\n') AS text,
+             max(bms.summary)                       AS summary,
+             max(bms.summary_model)                 AS summary_model
+      FROM bill_mention_speakers bms
+      JOIN speakers sp ON sp.id = bms.speaker_id
+      LEFT JOIN members m ON m.id = sp.member_id
+      GROUP BY bms.bill_mention_id, coalesce(m.name, sp.name), m.slug, m.photo_url, m.party
+    ) spk ON spk.bill_mention_id = bm.id
     WHERE bm.bill_id = ${billId}
     GROUP BY bm.id, s.url, s.session_type
     ORDER BY bm.date, bm.stage NULLS LAST

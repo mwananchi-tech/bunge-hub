@@ -57,13 +57,17 @@ export async function getTopic(id: string) {
 
 export async function getTopicSpeakers(topicId: string) {
   return db`
-    SELECT coalesce(m.name, sp.name) AS name,
+    SELECT coalesce(m.name, sp.name)              AS name,
            m.slug, m.photo_url, m.party, m.constituency,
-           ts.speech_count, ts.contributions_text, ts.summary, ts.summary_model
+           sum(ts.speech_count)::int              AS speech_count,
+           string_agg(ts.contributions_text, E'\n\n') AS contributions_text,
+           max(ts.summary)                        AS summary,
+           max(ts.summary_model)                  AS summary_model
     FROM topic_speakers ts
     JOIN speakers sp ON sp.id = ts.speaker_id
     LEFT JOIN members m ON m.id = sp.member_id
     WHERE ts.topic_id = ${topicId}
-    ORDER BY ts.speech_count DESC
+    GROUP BY coalesce(m.name, sp.name), m.slug, m.photo_url, m.party, m.constituency
+    ORDER BY sum(ts.speech_count) DESC
   `;
 }
