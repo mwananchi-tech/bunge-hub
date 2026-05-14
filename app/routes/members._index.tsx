@@ -1,18 +1,20 @@
-import { Link, Form } from "react-router";
-import type { Route } from "./+types/members._index";
-import { listMembers, getCommitteesByHouse, type MemberSort } from "~/lib/queries/members.server";
-import { Pagination } from "~/components/Pagination";
+import { Form, Link } from "react-router";
+
 import { PageToolbar } from "~/components/PageToolbar";
+import { Pagination } from "~/components/Pagination";
+import { type MemberSort, getCommitteesByHouse, listMembers } from "~/lib/queries/members.server";
+
+import type { Route } from "./+types/members._index";
 
 const LIMIT = 36;
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const url       = new URL(request.url);
-  const house     = url.searchParams.get("house") ?? undefined;
-  const sort      = (url.searchParams.get("sort") ?? "name") as MemberSort;
-  const q         = url.searchParams.get("q") ?? undefined;
+  const url = new URL(request.url);
+  const house = url.searchParams.get("house") ?? undefined;
+  const sort = (url.searchParams.get("sort") ?? "name") as MemberSort;
+  const q = url.searchParams.get("q") ?? undefined;
   const committee = url.searchParams.get("committee") ?? undefined;
-  const page      = Number(url.searchParams.get("page") ?? 1);
+  const page = Number(url.searchParams.get("page") ?? 1);
 
   const [rows, committees] = await Promise.all([
     listMembers({ house, sort, q, committee, page, limit: LIMIT }),
@@ -20,22 +22,32 @@ export async function loader({ request }: Route.LoaderArgs) {
   ]);
 
   const hasMore = rows.length > LIMIT;
-  return { members: rows.slice(0, LIMIT), house, sort, q, committee, page,
-           hasMore, committees, searchStr: url.searchParams.toString() };
+  return {
+    members: rows.slice(0, LIMIT),
+    house,
+    sort,
+    q,
+    committee,
+    page,
+    hasMore,
+    committees,
+    searchStr: url.searchParams.toString(),
+  };
 }
 
-export function meta() { return [{ title: "Members | Bunge Hub" }]; }
+export function meta() {
+  return [{ title: "Members | Bunge Hub" }];
+}
 
 const SORT_OPTIONS = [
-  { value: "name",            label: "A to Z"              },
-  { value: "most-active",     label: "Most active"          },
-  { value: "least-active",    label: "Least active"         },
-  { value: "most-sponsored",  label: "Most bills sponsored" },
+  { value: "name", label: "A to Z" },
+  { value: "most-active", label: "Most active" },
+  { value: "least-active", label: "Least active" },
+  { value: "most-sponsored", label: "Most bills sponsored" },
 ];
 
 export default function MembersIndex({ loaderData }: Route.ComponentProps) {
-  const { members, house, sort, q, committee, page, hasMore,
-          committees, searchStr } = loaderData;
+  const { members, house, sort, q, committee, page, hasMore, committees, searchStr } = loaderData;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -55,9 +67,9 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
             paramName: "house",
             current: house ?? "",
             pills: [
-              { value: "",                  label: "Both houses"       },
+              { value: "", label: "Both houses" },
               { value: "National Assembly", label: "National Assembly" },
-              { value: "Senate",            label: "Senate"            },
+              { value: "Senate", label: "Senate" },
             ],
             preserveParams: { sort, q, ...(committee ? { committee } : {}) },
           },
@@ -82,9 +94,13 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
             <select
               name="committee"
               value={committee ?? ""}
-              onChange={e => e.currentTarget.form?.requestSubmit()}
+              onChange={(e) => e.currentTarget.form?.requestSubmit()}
               className="flex-1 max-w-sm px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
-              style={{ border: "1px solid var(--color-border)", backgroundColor: "var(--color-surface)", color: "var(--color-text)" }}
+              style={{
+                border: "1px solid var(--color-border)",
+                backgroundColor: "var(--color-surface)",
+                color: "var(--color-text)",
+              }}
             >
               <option value="">All committees</option>
               {committees.map((c: any) => (
@@ -94,9 +110,11 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
               ))}
             </select>
             {committee && (
-              <Link to={`?${new URLSearchParams({ ...(house ? { house } : {}), sort, ...(q ? { q } : {}) })}`}
-                    className="text-xs px-2 py-1.5 rounded"
-                    style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}>
+              <Link
+                to={`?${new URLSearchParams({ ...(house ? { house } : {}), sort, ...(q ? { q } : {}) })}`}
+                className="text-xs px-2 py-1.5 rounded"
+                style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}
+              >
                 Clear
               </Link>
             )}
@@ -104,31 +122,44 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
         </Form>
       )}
 
-      {members.length === 0
-        ? <p style={{ color: "var(--color-muted)" }}>No members found.</p>
-        : (
+      {members.length === 0 ? (
+        <p style={{ color: "var(--color-muted)" }}>No members found.</p>
+      ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {members.map((m: any) => (
-            <Link key={m.slug} to={`/members/${m.slug}`}
-                  className="flex items-center gap-3 p-4 rounded-lg border transition-all"
-                  style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.backgroundColor = "var(--color-surface)";
-                    e.currentTarget.style.borderColor = "var(--color-accent)";
+            <Link
+              key={m.slug}
+              to={`/members/${m.slug}`}
+              className="flex items-center gap-3 p-4 rounded-lg border transition-all"
+              style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "var(--color-surface)";
+                e.currentTarget.style.borderColor = "var(--color-accent)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "var(--color-bg)";
+                e.currentTarget.style.borderColor = "var(--color-border)";
+              }}
+            >
+              {m.photoUrl ? (
+                <img
+                  src={m.photoUrl}
+                  alt={m.name}
+                  className="w-11 h-11 rounded-full object-cover shrink-0"
+                  style={{ border: "1px solid var(--color-border)" }}
+                />
+              ) : (
+                <div
+                  className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center font-serif"
+                  style={{
+                    backgroundColor: "var(--color-surface)",
+                    color: "var(--color-muted)",
+                    fontSize: "1.1rem",
                   }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.backgroundColor = "var(--color-bg)";
-                    e.currentTarget.style.borderColor = "var(--color-border)";
-                  }}>
-              {m.photoUrl
-                ? <img src={m.photoUrl} alt={m.name}
-                       className="w-11 h-11 rounded-full object-cover shrink-0"
-                       style={{ border: "1px solid var(--color-border)" }} />
-                : <div className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center font-serif"
-                       style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)", fontSize: "1.1rem" }}>
-                    {m.name[0]}
-                  </div>
-              }
+                >
+                  {m.name[0]}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="font-medium text-sm truncate">{m.name}</span>
@@ -163,14 +194,16 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
 function speakerBadge(role: string | null, constituency: string | null) {
   const text = `${role ?? ""} ${constituency ?? ""}`.toLowerCase();
   if (text.includes("deputy speaker")) return <Badge label="Deputy Speaker" />;
-  if (text.includes("speaker"))        return <Badge label="Speaker" />;
+  if (text.includes("speaker")) return <Badge label="Speaker" />;
   return null;
 }
 
 function Badge({ label }: { label: string }) {
   return (
-    <span className="shrink-0 px-1.5 py-0.5 rounded font-medium"
-          style={{ backgroundColor: "var(--color-accent)", color: "white", fontSize: "10px" }}>
+    <span
+      className="shrink-0 px-1.5 py-0.5 rounded font-medium"
+      style={{ backgroundColor: "var(--color-accent)", color: "white", fontSize: "10px" }}
+    >
       {label}
     </span>
   );

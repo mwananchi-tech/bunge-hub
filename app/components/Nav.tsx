@@ -1,20 +1,21 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { useState, useEffect } from "react";
+
 import { CommandPalette } from "./CommandPalette";
 
 const NAV_LINKS = [
-  { to: "/members",  label: "Members"  },
-  { to: "/bills",    label: "Bills"    },
-  { to: "/topics",   label: "Topics"   },
+  { to: "/members", label: "Members" },
+  { to: "/bills", label: "Bills" },
+  { to: "/topics", label: "Topics" },
   { to: "/sittings", label: "Sittings" },
-  { to: "/about",    label: "About"    },
+  { to: "/about", label: "About" },
 ];
 
 function useShortcutLabel() {
   const [label, setLabel] = useState("⌘K");
   useEffect(() => {
-    const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform) ||
-                  navigator.userAgent.includes("Mac");
+    const isMac =
+      /Mac|iPhone|iPad|iPod/.test(navigator.platform) || navigator.userAgent.includes("Mac");
     setLabel(isMac ? "⌘K" : "Ctrl+K");
   }, []);
   return label;
@@ -49,8 +50,10 @@ export function Nav() {
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img src="/logo.png" alt="Bunge Hub" className="w-7 h-7 rounded-full" />
-            <span className="font-serif text-lg font-semibold"
-                  style={{ color: "var(--color-accent)" }}>
+            <span
+              className="font-serif text-lg font-semibold"
+              style={{ color: "var(--color-accent)" }}
+            >
               Bunge Hub
             </span>
           </Link>
@@ -59,33 +62,50 @@ export function Nav() {
             {NAV_LINKS.map(({ to, label }) => {
               const active = location.pathname.startsWith(to);
               return (
-                <Link key={to} to={to}
-                      className="px-3 py-1.5 rounded text-sm transition-colors"
-                      style={{
-                        color: active ? "var(--color-accent)" : "var(--color-muted)",
-                        backgroundColor: active ? "var(--color-surface)" : "transparent",
-                        fontWeight: active ? 500 : 400,
-                      }}>
+                <Link
+                  key={to}
+                  to={to}
+                  className="px-3 py-1.5 rounded text-sm transition-colors"
+                  style={{
+                    color: active ? "var(--color-accent)" : "var(--color-muted)",
+                    backgroundColor: active ? "var(--color-surface)" : "transparent",
+                    fontWeight: active ? 500 : 400,
+                  }}
+                >
                   {label}
                 </Link>
               );
             })}
           </nav>
 
-          <button onClick={() => setSearchOpen(true)}
-                  className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded text-sm"
-                  style={{
-                    border: "1px solid var(--color-border)",
-                    color: "var(--color-muted)",
-                    backgroundColor: "var(--color-surface)",
-                  }}>
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 16 16"
-                 stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" d="M6.5 12a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM14 14l-3-3" />
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded text-sm"
+            style={{
+              border: "1px solid var(--color-border)",
+              color: "var(--color-muted)",
+              backgroundColor: "var(--color-surface)",
+            }}
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 16 16"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                d="M6.5 12a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM14 14l-3-3"
+              />
             </svg>
             <span className="hidden sm:inline">Search</span>
-            <kbd className="hidden sm:inline text-xs px-1 rounded"
-                 style={{ border: "1px solid var(--color-border)" }}>{shortcutLabel}</kbd>
+            <kbd
+              className="hidden sm:inline text-xs px-1 rounded"
+              style={{ border: "1px solid var(--color-border)" }}
+            >
+              {shortcutLabel}
+            </kbd>
           </button>
         </div>
       </header>

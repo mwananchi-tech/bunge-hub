@@ -52,7 +52,6 @@ export function PageToolbar({
 }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-2 mb-8">
-
       {/* Search — carry sort + filter params so they survive a search */}
       <Form method="get" className="flex gap-2 flex-1 min-w-[180px] max-w-sm">
         {Object.entries(hiddenParams).map(([k, v]) =>
@@ -82,13 +81,16 @@ export function PageToolbar({
       <div className="flex-1 hidden sm:block" />
 
       {/* Filter pill groups */}
-      {filterGroups.map(group => (
+      {filterGroups.map((group) => (
         <div key={group.paramName} className="flex gap-1">
-          {group.pills.map(pill => {
+          {group.pills.map((pill) => {
             const active = group.current === pill.value;
             const params = new URLSearchParams({
               ...Object.fromEntries(
-                Object.entries(group.preserveParams ?? {}).filter(([, v]) => v != null) as [string, string][]
+                Object.entries(group.preserveParams ?? {}).filter(([, v]) => v != null) as [
+                  string,
+                  string,
+                ][]
               ),
               ...(pill.value ? { [group.paramName]: pill.value } : {}),
               ...(q ? { q } : {}),
@@ -115,23 +117,26 @@ export function PageToolbar({
       {sort && (
         <Form method="get">
           {q && <input type="hidden" name="q" value={q} />}
-          {filterGroups.map(g =>
-            g.current ? <input key={g.paramName} type="hidden" name={g.paramName} value={g.current} /> : null
+          {filterGroups.map((g) =>
+            g.current ? (
+              <input key={g.paramName} type="hidden" name={g.paramName} value={g.current} />
+            ) : null
           )}
           <select
             name={sort.paramName ?? "sort"}
             defaultValue={sort.current}
-            onChange={e => e.currentTarget.form?.requestSubmit()}
+            onChange={(e) => e.currentTarget.form?.requestSubmit()}
             className="px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
             style={inputStyle}
           >
-            {sort.options.map(o => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+            {sort.options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
         </Form>
       )}
-
     </div>
   );
 }

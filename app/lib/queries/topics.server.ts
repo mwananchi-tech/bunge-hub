@@ -1,8 +1,12 @@
 import { db } from "~/lib/db.server";
 
 const QS_TYPES = [
-  "Questions And Statements", "Statements", "Statement",
-  "Notice Of Motion", "Notices Of Motion", "Notices Of Motions",
+  "Questions And Statements",
+  "Statements",
+  "Statement",
+  "Notice Of Motion",
+  "Notices Of Motion",
+  "Notices Of Motions",
 ];
 const HEARING_TYPES = ["Communication From The Chair", "Communications From The Chair"];
 
@@ -30,10 +34,7 @@ export async function listTopics({
   `;
 }
 
-export async function countTopics({
-  tab = "qs",
-  q,
-}: { tab?: "qs" | "hearings"; q?: string } = {}) {
+export async function countTopics({ tab = "qs", q }: { tab?: "qs" | "hearings"; q?: string } = {}) {
   const types = tab === "hearings" ? HEARING_TYPES : QS_TYPES;
   const searchFilter = q ? db`AND title ILIKE ${`%${q}%`}` : db``;
   const [r] = await db`

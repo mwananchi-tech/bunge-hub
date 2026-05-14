@@ -57,38 +57,50 @@ export function Pagination({ page, hasMore, totalPages, searchStr = "" }: Props)
     <div className="flex items-center justify-center gap-1 mt-10 flex-wrap">
       {/* Previous */}
       {page > 1 && (
-        <Link to={pageUrl(searchStr, page - 1)}
-              className="px-3 py-1.5 text-sm rounded"
-              style={linkStyle}>
+        <Link
+          to={pageUrl(searchStr, page - 1)}
+          className="px-3 py-1.5 text-sm rounded"
+          style={linkStyle}
+        >
           ←
         </Link>
       )}
 
       {/* Page numbers */}
-      {pages
-        ? pages.map((p, i) =>
-            p === "…"
-              ? <span key={`dots-${i}`} className="px-1 text-sm"
-                      style={{ color: "var(--color-muted)" }}>…</span>
-              : <Link key={p} to={pageUrl(searchStr, p)}
-                      className="px-3 py-1.5 text-sm rounded tabular-nums min-w-[36px] text-center"
-                      style={p === page ? activeStyle : linkStyle}>
-                  {p}
-                </Link>
+      {pages ? (
+        pages.map((p, i) =>
+          p === "…" ? (
+            <span
+              key={`dots-${i}`}
+              className="px-1 text-sm"
+              style={{ color: "var(--color-muted)" }}
+            >
+              …
+            </span>
+          ) : (
+            <Link
+              key={p}
+              to={pageUrl(searchStr, p)}
+              className="px-3 py-1.5 text-sm rounded tabular-nums min-w-[36px] text-center"
+              style={p === page ? activeStyle : linkStyle}
+            >
+              {p}
+            </Link>
           )
-        : (
-          <span className="px-3 py-1.5 text-sm tabular-nums"
-                style={{ color: "var(--color-muted)" }}>
-            Page {page}
-          </span>
         )
-      }
+      ) : (
+        <span className="px-3 py-1.5 text-sm tabular-nums" style={{ color: "var(--color-muted)" }}>
+          Page {page}
+        </span>
+      )}
 
       {/* Next */}
       {(hasMore || (totalPages && page < totalPages)) && (
-        <Link to={pageUrl(searchStr, page + 1)}
-              className="px-3 py-1.5 text-sm rounded"
-              style={linkStyle}>
+        <Link
+          to={pageUrl(searchStr, page + 1)}
+          className="px-3 py-1.5 text-sm rounded"
+          style={linkStyle}
+        >
           →
         </Link>
       )}

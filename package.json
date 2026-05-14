@@ -6,7 +6,11 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "lint": "eslint app",
+    "lint:fix": "eslint app --fix",
+    "format": "prettier --check app",
+    "format:fix": "prettier --write app"
   },
   "dependencies": {
     "@react-router/node": "7.15.0",
@@ -21,13 +25,22 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@react-router/dev": "7.15.0",
     "@tailwindcss/vite": "^4.3.0",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "prettier": "^3.8.3",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.59.3",
     "vite": "^8.0.3"
   }
 }

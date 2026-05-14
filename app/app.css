@@ -3,18 +3,19 @@
 
 @theme {
   --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
-  --font-sans:  "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  --color-bg:      #FFFDF9;
-  --color-surface: #F5F2EC;
-  --color-border:  #E5E1D8;
-  --color-text:    #1C1917;
-  --color-muted:   #78716C;
-  --color-accent:  #9b3030;
-  --color-gold:    #C8A45F;
+  --color-bg: #fffdf9;
+  --color-surface: #f5f2ec;
+  --color-border: #e5e1d8;
+  --color-text: #1c1917;
+  --color-muted: #78716c;
+  --color-accent: #9b3030;
+  --color-gold: #c8a45f;
 }
 
-html, body {
+html,
+body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);

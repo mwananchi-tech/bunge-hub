@@ -23,27 +23,41 @@ export async function listMembers({
   committee,
   page = 1,
   limit = 36,
-}: { house?: string; sort?: MemberSort; q?: string; committee?: string; page?: number; limit?: number } = {}) {
+}: {
+  house?: string;
+  sort?: MemberSort;
+  q?: string;
+  committee?: string;
+  page?: number;
+  limit?: number;
+} = {}) {
   const offset = (page - 1) * limit;
-  const houseFilter     = house ? db`AND m.house = ${house}` : db``;
-  const searchFilter = q ? db`
+  const houseFilter = house ? db`AND m.house = ${house}` : db``;
+  const searchFilter = q
+    ? db`
     AND (
-      m.name         ILIKE ${'%' + q + '%'} OR
-      m.party        ILIKE ${'%' + q + '%'} OR
-      m.constituency ILIKE ${'%' + q + '%'}
+      m.name         ILIKE ${"%" + q + "%"} OR
+      m.party        ILIKE ${"%" + q + "%"} OR
+      m.constituency ILIKE ${"%" + q + "%"}
     )
-  ` : db``;
-  const committeeFilter = committee ? db`
+  `
+    : db``;
+  const committeeFilter = committee
+    ? db`
     AND EXISTS (
       SELECT 1 FROM jsonb_array_elements_text(m.committees) AS c
       WHERE normalize_committee(c) = ${committee}
     )
-  ` : db``;
+  `
+    : db``;
   const orderBy =
-    sort === "most-active"   ? db`ORDER BY total_speeches DESC NULLS LAST, m.name` :
-    sort === "least-active"  ? db`ORDER BY total_speeches ASC  NULLS LAST, m.name` :
-    sort === "most-sponsored" ? db`ORDER BY bills_sponsored DESC NULLS LAST, m.name` :
-                                db`ORDER BY m.name`;
+    sort === "most-active"
+      ? db`ORDER BY total_speeches DESC NULLS LAST, m.name`
+      : sort === "least-active"
+        ? db`ORDER BY total_speeches ASC  NULLS LAST, m.name`
+        : sort === "most-sponsored"
+          ? db`ORDER BY bills_sponsored DESC NULLS LAST, m.name`
+          : db`ORDER BY m.name`;
 
   return db`
     SELECT m.id, m.name, m.slug, m.photo_url, m.party, m.house, m.constituency,
@@ -75,11 +89,7 @@ export async function getMember(slug: string) {
   return m ?? null;
 }
 
-export async function getMemberBills(
-  memberId: string,
-  page = 1,
-  limit = 20,
-) {
+export async function getMemberBills(memberId: string, page = 1, limit = 20) {
   const offset = (page - 1) * limit;
   return db`
     SELECT b.id, b.name, b.bill_number, b.year,
@@ -100,11 +110,7 @@ export async function getMemberBills(
   `;
 }
 
-export async function getMemberTopics(
-  memberId: string,
-  page = 1,
-  limit = 30,
-) {
+export async function getMemberTopics(memberId: string, page = 1, limit = 30) {
   const offset = (page - 1) * limit;
   return db`
     SELECT t.id, t.title, t.section_type,

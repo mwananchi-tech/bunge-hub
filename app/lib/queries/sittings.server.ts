@@ -2,8 +2,9 @@ import { db } from "~/lib/db.server";
 
 export async function countSittings({ house, year }: { house?: string; year?: number } = {}) {
   const houseFilter = house ? db`AND house = ${house}` : db``;
-  const yearFilter  = year  ? db`AND EXTRACT(YEAR FROM date) = ${year}` : db``;
-  const [r] = await db`SELECT count(*)::int AS n FROM sittings WHERE TRUE ${houseFilter} ${yearFilter}`;
+  const yearFilter = year ? db`AND EXTRACT(YEAR FROM date) = ${year}` : db``;
+  const [r] =
+    await db`SELECT count(*)::int AS n FROM sittings WHERE TRUE ${houseFilter} ${yearFilter}`;
   return r.n as number;
 }
 
@@ -15,7 +16,7 @@ export async function listSittings({
 }: { house?: string; year?: number; page?: number; limit?: number } = {}) {
   const offset = (page - 1) * limit;
   const houseFilter = house ? db`AND house = ${house}` : db``;
-  const yearFilter  = year  ? db`AND EXTRACT(YEAR FROM date) = ${year}` : db``;
+  const yearFilter = year ? db`AND EXTRACT(YEAR FROM date) = ${year}` : db``;
   return db`
     SELECT url, date, house, session_type, summary, pdf_url
     FROM sittings
@@ -33,7 +34,7 @@ export async function getSittingBySlug(slug: string) {
     SELECT url, date, house, session_type, summary, sentiment,
            source, pdf_url, raw_json
     FROM sittings
-    WHERE url LIKE ${'%/' + slug + '/'} OR url LIKE ${'%/' + slug}
+    WHERE url LIKE ${"%/" + slug + "/"} OR url LIKE ${"%/" + slug}
   `;
   return sitting ?? null;
 }
@@ -52,11 +53,14 @@ export async function getSpeakerSlugs(sittingUrl: string) {
       AND sp.url IS NOT NULL
   `;
   return Object.fromEntries(
-    rows.map((r: any) => [r.speakerUrl, {
-      slug: r.memberSlug,
-      name: r.memberName,
-      photo: r.memberPhoto,
-      party: r.memberParty,
-    }])
+    rows.map((r: any) => [
+      r.speakerUrl,
+      {
+        slug: r.memberSlug,
+        name: r.memberName,
+        photo: r.memberPhoto,
+        party: r.memberParty,
+      },
+    ])
   );
 }

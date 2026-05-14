@@ -1,12 +1,19 @@
-import { Link, data, useSearchParams } from "react-router";
-import type { Route } from "./+types/members.$slug";
-import {
-  getMember, getMemberBills, getMemberTopics, getMemberSponsoredBills,
-  getMemberStats, getMemberBillCount, getMemberTopicCount,
-} from "~/lib/queries/members.server";
-import { Pagination } from "~/components/Pagination";
+import { Link, data } from "react-router";
 
-const BILL_LIMIT  = 20;
+import { Pagination } from "~/components/Pagination";
+import {
+  getMember,
+  getMemberBillCount,
+  getMemberBills,
+  getMemberSponsoredBills,
+  getMemberStats,
+  getMemberTopicCount,
+  getMemberTopics,
+} from "~/lib/queries/members.server";
+
+import type { Route } from "./+types/members.$slug";
+
+const BILL_LIMIT = 20;
 const TOPIC_LIMIT = 30;
 
 type Tab = "sponsored" | "bills" | "topics";
@@ -15,8 +22,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const member = await getMember(params.slug!);
   if (!member) throw data("Member not found", { status: 404 });
 
-  const url  = new URL(request.url);
-  const tab  = (url.searchParams.get("tab") ?? "sponsored") as Tab;
+  const url = new URL(request.url);
+  const tab = (url.searchParams.get("tab") ?? "sponsored") as Tab;
   const page = Math.max(1, Number(url.searchParams.get("page") ?? 1));
 
   const [stats, sponsored, billCount, topicCount] = await Promise.all([
@@ -29,22 +36,53 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const searchStr = url.searchParams.toString();
 
   if (tab === "topics") {
-    const rows    = await getMemberTopics(member.id, page, TOPIC_LIMIT);
+    const rows = await getMemberTopics(member.id, page, TOPIC_LIMIT);
     const hasMore = rows.length > TOPIC_LIMIT;
-    return { member, stats, sponsored, billCount, topicCount,
-             bills: [], topics: rows.slice(0, TOPIC_LIMIT),
-             tab, page, hasMore, searchStr };
+    return {
+      member,
+      stats,
+      sponsored,
+      billCount,
+      topicCount,
+      bills: [],
+      topics: rows.slice(0, TOPIC_LIMIT),
+      tab,
+      page,
+      hasMore,
+      searchStr,
+    };
   }
   if (tab === "bills") {
-    const rows    = await getMemberBills(member.id, page, BILL_LIMIT);
+    const rows = await getMemberBills(member.id, page, BILL_LIMIT);
     const hasMore = rows.length > BILL_LIMIT;
-    return { member, stats, sponsored, billCount, topicCount,
-             bills: rows.slice(0, BILL_LIMIT), topics: [],
-             tab, page, hasMore, searchStr };
+    return {
+      member,
+      stats,
+      sponsored,
+      billCount,
+      topicCount,
+      bills: rows.slice(0, BILL_LIMIT),
+      topics: [],
+      tab,
+      page,
+      hasMore,
+      searchStr,
+    };
   }
   // default: sponsored tab (no pagination needed — most members have few sponsored bills)
-  return { member, stats, sponsored, billCount, topicCount,
-           bills: [], topics: [], tab, page, hasMore: false, searchStr };
+  return {
+    member,
+    stats,
+    sponsored,
+    billCount,
+    topicCount,
+    bills: [],
+    topics: [],
+    tab,
+    page,
+    hasMore: false,
+    searchStr,
+  };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -52,35 +90,55 @@ export function meta({ data }: Route.MetaArgs) {
 }
 
 export default function MemberProfile({ loaderData }: Route.ComponentProps) {
-  const { member: m, stats, sponsored, billCount, topicCount,
-          bills, topics, tab, page, hasMore, searchStr } = loaderData;
+  const {
+    member: m,
+    stats,
+    sponsored,
+    billCount,
+    topicCount,
+    bills,
+    topics,
+    tab,
+    page,
+    hasMore,
+    searchStr,
+  } = loaderData;
 
   const positions: string[] = m.positions ?? [];
   const committees: string[] = m.committees ?? [];
-  const primaryPosition = positions
-    .find(p => !p.startsWith("A member of the"))
-    ?.replace(/^Elected to be /, "") ?? null;
+  const primaryPosition =
+    positions.find((p) => !p.startsWith("A member of the"))?.replace(/^Elected to be /, "") ?? null;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
-
       {/* Header */}
       <div className="flex gap-6 mb-10">
-        {m.photoUrl
-          ? <img src={m.photoUrl} alt={m.name}
-                 className="w-24 h-24 rounded-full object-cover shrink-0"
-                 style={{ border: "2px solid var(--color-border)" }} />
-          : <div className="w-24 h-24 rounded-full shrink-0 flex items-center justify-center font-serif text-3xl"
-                 style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}>
-              {m.name[0]}
-            </div>
-        }
+        {m.photoUrl ? (
+          <img
+            src={m.photoUrl}
+            alt={m.name}
+            className="w-24 h-24 rounded-full object-cover shrink-0"
+            style={{ border: "2px solid var(--color-border)" }}
+          />
+        ) : (
+          <div
+            className="w-24 h-24 rounded-full shrink-0 flex items-center justify-center font-serif text-3xl"
+            style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}
+          >
+            {m.name[0]}
+          </div>
+        )}
         <div className="min-w-0">
           <h1 className="font-serif text-3xl mb-1">{m.name}</h1>
           <div className="flex flex-wrap items-center gap-2 text-sm mb-2">
             {m.party && (
-              <span className="px-2 py-0.5 rounded text-xs font-medium"
-                    style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+              <span
+                className="px-2 py-0.5 rounded text-xs font-medium"
+                style={{
+                  backgroundColor: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                }}
+              >
                 {m.party}
               </span>
             )}
@@ -109,8 +167,10 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
       {/* Committees */}
       {committees.length > 0 && (
         <div className="mb-8 p-4 rounded-lg" style={{ backgroundColor: "var(--color-surface)" }}>
-          <div className="text-xs font-medium uppercase tracking-widest mb-2"
-               style={{ color: "var(--color-muted)" }}>
+          <div
+            className="text-xs font-medium uppercase tracking-widest mb-2"
+            style={{ color: "var(--color-muted)" }}
+          >
             Committees
           </div>
           <div className="flex flex-wrap gap-2">
@@ -120,12 +180,14 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
                 .replace(/ committee\.?$/i, "");
               const slug = clean.toLowerCase().trim();
               return (
-                <Link key={i}
-                      to={`/members?committee=${encodeURIComponent(slug)}&house=${encodeURIComponent(m.house)}`}
-                      className="text-xs px-2 py-1 rounded transition-colors"
-                      style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}
-                      onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--color-accent)")}
-                      onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--color-border)")}>
+                <Link
+                  key={i}
+                  to={`/members?committee=${encodeURIComponent(slug)}&house=${encodeURIComponent(m.house)}`}
+                  className="text-xs px-2 py-1 rounded transition-colors"
+                  style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--color-accent)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-border)")}
+                >
                   {clean}
                 </Link>
               );
@@ -135,20 +197,23 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
       )}
 
       {/* Tabs: URL-driven so pagination is preserved on tab switch */}
-      <div className="flex gap-1 mb-6"
-           style={{ borderBottom: "1px solid var(--color-border)" }}>
-        {([
-          ["sponsored", `Sponsored (${sponsored.length})`],
-          ["bills",     `Debates (${billCount.toLocaleString()})`],
-          ["topics",    `Topics (${topicCount.toLocaleString()})`],
-        ] as [string, string][]).map(([t, label]) => (
-          <Link key={t}
-                to={`?tab=${t}`}
-                className="px-4 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors"
-                style={{
-                  borderColor: tab === t ? "var(--color-accent)" : "transparent",
-                  color: tab === t ? "var(--color-accent)" : "var(--color-muted)",
-                }}>
+      <div className="flex gap-1 mb-6" style={{ borderBottom: "1px solid var(--color-border)" }}>
+        {(
+          [
+            ["sponsored", `Sponsored (${sponsored.length})`],
+            ["bills", `Debates (${billCount.toLocaleString()})`],
+            ["topics", `Topics (${topicCount.toLocaleString()})`],
+          ] as [string, string][]
+        ).map(([t, label]) => (
+          <Link
+            key={t}
+            to={`?tab=${t}`}
+            className="px-4 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors"
+            style={{
+              borderColor: tab === t ? "var(--color-accent)" : "transparent",
+              color: tab === t ? "var(--color-accent)" : "var(--color-muted)",
+            }}
+          >
             {label}
           </Link>
         ))}
@@ -157,59 +222,87 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
       {/* Sponsored bills */}
       {tab === "sponsored" && (
         <>
-        <div className="flex items-center gap-1.5 mb-3">
-          <p className="text-xs" style={{ color: "var(--color-muted)" }}>
-            Bills identified from transcript text where this member moved a reading.
-          </p>
-          <span className="relative group cursor-default shrink-0">
-            <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none"
-                 style={{ color: "var(--color-muted)", opacity: 0.55 }}>
-              <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="M8 7v4M8 5.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-lg px-3 py-2 text-xs text-left leading-relaxed pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg"
-                  style={{ backgroundColor: "var(--color-text)", color: "var(--color-bg)" }}>
-              Sponsorship is inferred from contribution text using name matching. Some bills
-              may be missing if the member's name could not be resolved, and a small number
-              of entries may be procedural motions rather than substantive legislation.
+          <div className="flex items-center gap-1.5 mb-3">
+            <p className="text-xs" style={{ color: "var(--color-muted)" }}>
+              Bills identified from transcript text where this member moved a reading.
+            </p>
+            <span className="relative group cursor-default shrink-0">
+              <svg
+                className="w-3 h-3"
+                viewBox="0 0 16 16"
+                fill="none"
+                style={{ color: "var(--color-muted)", opacity: 0.55 }}
+              >
+                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+                <path
+                  d="M8 7v4M8 5.5v.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span
+                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-lg px-3 py-2 text-xs text-left leading-relaxed pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg"
+                style={{ backgroundColor: "var(--color-text)", color: "var(--color-bg)" }}
+              >
+                Sponsorship is inferred from contribution text using name matching. Some bills may
+                be missing if the member&apos;s name could not be resolved, and a small number of
+                entries may be procedural motions rather than substantive legislation.
+              </span>
             </span>
-          </span>
-        </div>
-        <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
-          {sponsored.length === 0
-            ? <Empty text="No sponsored bills found." />
-            : sponsored.map((b: any) => (
-              <div key={b.id} className="py-4 flex items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <Link to={`/bills/${b.id}`}
-                        className="text-sm font-medium hover:underline"
-                        style={{ color: "var(--color-accent)" }}>
-                    {b.name}
-                  </Link>
-                  <div className="text-xs mt-1 flex flex-wrap gap-x-2 gap-y-0.5"
-                       style={{ color: "var(--color-muted)" }}>
-                    {b.billNumber && <span>{b.billNumber}</span>}
-                    {b.year && <><span>·</span><span>{b.year}</span></>}
-                    {b.stages?.filter(Boolean).length > 0 && (
-                      <><span>·</span><span>{b.stages.filter(Boolean).join(", ")}</span></>
-                    )}
-                    {b.firstSeen && (
-                      <><span>·</span>
-                      <span>
-                        {fmt(b.firstSeen)}
-                        {b.lastSeen && b.firstSeen !== b.lastSeen && ` – ${fmt(b.lastSeen)}`}
-                      </span></>
-                    )}
+          </div>
+          <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+            {sponsored.length === 0 ? (
+              <Empty text="No sponsored bills found." />
+            ) : (
+              sponsored.map((b: any) => (
+                <div key={b.id} className="py-4 flex items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <Link
+                      to={`/bills/${b.id}`}
+                      className="text-sm font-medium hover:underline"
+                      style={{ color: "var(--color-accent)" }}
+                    >
+                      {b.name}
+                    </Link>
+                    <div
+                      className="text-xs mt-1 flex flex-wrap gap-x-2 gap-y-0.5"
+                      style={{ color: "var(--color-muted)" }}
+                    >
+                      {b.billNumber && <span>{b.billNumber}</span>}
+                      {b.year && (
+                        <>
+                          <span>·</span>
+                          <span>{b.year}</span>
+                        </>
+                      )}
+                      {b.stages?.filter(Boolean).length > 0 && (
+                        <>
+                          <span>·</span>
+                          <span>{b.stages.filter(Boolean).join(", ")}</span>
+                        </>
+                      )}
+                      {b.firstSeen && (
+                        <>
+                          <span>·</span>
+                          <span>
+                            {fmt(b.firstSeen)}
+                            {b.lastSeen && b.firstSeen !== b.lastSeen && ` – ${fmt(b.lastSeen)}`}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-sm font-semibold">{b.sittings ?? 0}</div>
+                    <div className="text-xs" style={{ color: "var(--color-muted)" }}>
+                      sittings
+                    </div>
                   </div>
                 </div>
-                <div className="shrink-0 text-right">
-                  <div className="text-sm font-semibold">{b.sittings ?? 0}</div>
-                  <div className="text-xs" style={{ color: "var(--color-muted)" }}>sittings</div>
-                </div>
-              </div>
-            ))
-          }
-        </div>
+              ))
+            )}
+          </div>
         </>
       )}
 
@@ -217,21 +310,29 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
       {tab === "bills" && (
         <>
           <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
-            {bills.length === 0
-              ? <Empty text="No bills found." />
-              : bills.map((b: any) => (
+            {bills.length === 0 ? (
+              <Empty text="No bills found." />
+            ) : (
+              bills.map((b: any) => (
                 <div key={b.id} className="py-4 flex items-start gap-4">
                   <div className="flex-1 min-w-0">
-                    <Link to={`/bills/${b.id}`}
-                          className="text-sm font-medium hover:underline"
-                          style={{ color: "var(--color-accent)" }}>
+                    <Link
+                      to={`/bills/${b.id}`}
+                      className="text-sm font-medium hover:underline"
+                      style={{ color: "var(--color-accent)" }}
+                    >
                       {b.name}
                     </Link>
-                    <div className="text-xs mt-1 flex flex-wrap gap-x-2 gap-y-0.5"
-                         style={{ color: "var(--color-muted)" }}>
+                    <div
+                      className="text-xs mt-1 flex flex-wrap gap-x-2 gap-y-0.5"
+                      style={{ color: "var(--color-muted)" }}
+                    >
                       {b.billNumber && <span>{b.billNumber}</span>}
                       {b.stages?.filter(Boolean).length > 0 && (
-                        <><span>·</span><span>{b.stages.filter(Boolean).join(", ")}</span></>
+                        <>
+                          <span>·</span>
+                          <span>{b.stages.filter(Boolean).join(", ")}</span>
+                        </>
                       )}
                       <span>·</span>
                       <span>
@@ -242,11 +343,13 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="text-sm font-semibold">{b.speeches}</div>
-                    <div className="text-xs" style={{ color: "var(--color-muted)" }}>speeches</div>
+                    <div className="text-xs" style={{ color: "var(--color-muted)" }}>
+                      speeches
+                    </div>
                   </div>
                 </div>
               ))
-            }
+            )}
           </div>
           <Pagination page={page} hasMore={hasMore} searchStr={searchStr} />
         </>
@@ -256,18 +359,23 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
       {tab === "topics" && (
         <>
           <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
-            {topics.length === 0
-              ? <Empty text="No topics found." />
-              : topics.map((t: any) => (
+            {topics.length === 0 ? (
+              <Empty text="No topics found." />
+            ) : (
+              topics.map((t: any) => (
                 <div key={t.id} className="py-4 flex items-start gap-4">
                   <div className="flex-1 min-w-0">
-                    <Link to={`/topics/${t.id}`}
-                          className="text-sm font-medium hover:underline"
-                          style={{ color: "var(--color-accent)" }}>
+                    <Link
+                      to={`/topics/${t.id}`}
+                      className="text-sm font-medium hover:underline"
+                      style={{ color: "var(--color-accent)" }}
+                    >
                       {t.title}
                     </Link>
-                    <div className="text-xs mt-1 flex gap-2"
-                         style={{ color: "var(--color-muted)" }}>
+                    <div
+                      className="text-xs mt-1 flex gap-2"
+                      style={{ color: "var(--color-muted)" }}
+                    >
                       <span>{t.sectionType}</span>
                       <span>·</span>
                       <span>{fmt(t.date)}</span>
@@ -277,16 +385,17 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="text-sm font-semibold">{t.speechCount}</div>
-                    <div className="text-xs" style={{ color: "var(--color-muted)" }}>speeches</div>
+                    <div className="text-xs" style={{ color: "var(--color-muted)" }}>
+                      speeches
+                    </div>
                   </div>
                 </div>
               ))
-            }
+            )}
           </div>
           <Pagination page={page} hasMore={hasMore} searchStr={searchStr} />
         </>
       )}
-
     </div>
   );
 }
@@ -310,6 +419,8 @@ function Empty({ text }: { text: string }) {
 
 function fmt(d: string) {
   return new Date(d).toLocaleDateString("en-KE", {
-    day: "numeric", month: "short", year: "numeric",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 }

@@ -11,12 +11,15 @@ export async function listBills({
 }: { q?: string; sort?: BillSort; house?: string; page?: number; limit?: number } = {}) {
   const offset = (page - 1) * limit;
   const searchFilter = q ? db`AND b.name ILIKE ${`%${q}%`}` : db``;
-  const houseFilter  = house ? db`AND bm.house = ${house}` : db``;
+  const houseFilter = house ? db`AND bm.house = ${house}` : db``;
   const orderBy =
-    sort === "most-debated"  ? db`ORDER BY count(DISTINCT bm.sitting_id) DESC NULLS LAST, b.name` :
-    sort === "most-speeches" ? db`ORDER BY sum(bm.speech_count) DESC NULLS LAST, b.name` :
-    sort === "name"          ? db`ORDER BY b.name` :
-                               db`ORDER BY max(bm.date) DESC NULLS LAST, b.name`;
+    sort === "most-debated"
+      ? db`ORDER BY count(DISTINCT bm.sitting_id) DESC NULLS LAST, b.name`
+      : sort === "most-speeches"
+        ? db`ORDER BY sum(bm.speech_count) DESC NULLS LAST, b.name`
+        : sort === "name"
+          ? db`ORDER BY b.name`
+          : db`ORDER BY max(bm.date) DESC NULLS LAST, b.name`;
   return db`
     SELECT b.id, b.name, b.bill_number, b.year, b.sponsor,
            count(DISTINCT bm.sitting_id)::int              AS sittings,
@@ -37,7 +40,7 @@ export async function listBills({
 
 export async function countBills({ q, house }: { q?: string; house?: string } = {}) {
   const searchFilter = q ? db`AND b.name ILIKE ${`%${q}%`}` : db``;
-  const houseFilter  = house ? db`AND bm.house = ${house}` : db``;
+  const houseFilter = house ? db`AND bm.house = ${house}` : db``;
   const [r] = await db`
     SELECT count(DISTINCT b.id)::int AS n
     FROM bills b

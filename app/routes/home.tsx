@@ -1,21 +1,26 @@
 import { Link } from "react-router";
-import type { Route } from "./+types/home";
+
 import {
   getHomeStats,
-  getTopMembersByHouse,
+  getRecentSittings,
   getRecentTabledBills,
   getRecentTopics,
-  getRecentSittings,
+  getTopMembersByHouse,
 } from "~/lib/queries/home.server";
+
+import type { Route } from "./+types/home";
+
 export async function loader() {
-  const [stats, topMPs, topSenators, recentBills, recentTopics, recentSittings] = await Promise.all([
-    getHomeStats(),
-    getTopMembersByHouse("National Assembly", 8),
-    getTopMembersByHouse("Senate", 8),
-    getRecentTabledBills(8),
-    getRecentTopics(8),
-    getRecentSittings(5),
-  ]);
+  const [stats, topMPs, topSenators, recentBills, recentTopics, recentSittings] = await Promise.all(
+    [
+      getHomeStats(),
+      getTopMembersByHouse("National Assembly", 8),
+      getTopMembersByHouse("Senate", 8),
+      getRecentTabledBills(8),
+      getRecentTopics(8),
+      getRecentSittings(5),
+    ]
+  );
   return { stats, topMPs, topSenators, recentBills, recentTopics, recentSittings };
 }
 
@@ -28,10 +33,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-16">
-
       <div className="mb-16">
         <h1 className="font-serif text-5xl font-light mb-3">
-          Kenya's parliamentary record,<br />open and queryable.
+          Kenya&apos;s parliamentary record,
+          <br />
+          open and queryable.
         </h1>
         <p className="text-lg max-w-xl mb-4" style={{ color: "var(--color-muted)" }}>
           Raw data from the 13th Parliament. Every bill, every debate, every contribution:
@@ -43,31 +49,57 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px mb-16"
-           style={{ backgroundColor: "var(--color-border)" }}>
+      <div
+        className="grid grid-cols-2 sm:grid-cols-4 gap-px mb-16"
+        style={{ backgroundColor: "var(--color-border)" }}
+      >
         {[
-          { label: "Sittings",     value: stats.sittings, note: "Counts all parliamentary sittings indexed from the Hansard. A single calendar day may have multiple sittings across houses or sessions." },
-          { label: "Members",      value: stats.members  },
-          { label: "Bills tabled", value: stats.bills,   note: "Derived from bills where a sponsor was identified in the transcript. Some sponsors could not be matched, and some entries may be procedural items rather than new legislation." },
-          { label: "Topics",       value: stats.topics   },
+          {
+            label: "Sittings",
+            value: stats.sittings,
+            note: "Counts all parliamentary sittings indexed from the Hansard. A single calendar day may have multiple sittings across houses or sessions.",
+          },
+          { label: "Members", value: stats.members },
+          {
+            label: "Bills tabled",
+            value: stats.bills,
+            note: "Derived from bills where a sponsor was identified in the transcript. Some sponsors could not be matched, and some entries may be procedural items rather than new legislation.",
+          },
+          { label: "Topics", value: stats.topics },
         ].map(({ label, value, note }) => (
-          <div key={label} className="py-8 px-6 text-center"
-               style={{ backgroundColor: "var(--color-bg)" }}>
+          <div
+            key={label}
+            className="py-8 px-6 text-center"
+            style={{ backgroundColor: "var(--color-bg)" }}
+          >
             <div className="font-serif text-4xl font-light mb-1">
               {Number(value).toLocaleString()}
             </div>
-            <div className="text-sm flex items-center justify-center gap-1"
-                 style={{ color: "var(--color-muted)" }}>
+            <div
+              className="text-sm flex items-center justify-center gap-1"
+              style={{ color: "var(--color-muted)" }}
+            >
               {label}
               {note && (
                 <span className="relative group cursor-default">
-                  <svg className="w-3 h-3 inline-block" viewBox="0 0 16 16" fill="none"
-                       style={{ color: "var(--color-muted)", opacity: 0.55 }}>
-                    <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
-                    <path d="M8 7v4M8 5.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <svg
+                    className="w-3 h-3 inline-block"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    style={{ color: "var(--color-muted)", opacity: 0.55 }}
+                  >
+                    <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+                    <path
+                      d="M8 7v4M8 5.5v.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
                   </svg>
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-lg px-3 py-2 text-xs text-left leading-relaxed pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg"
-                        style={{ backgroundColor: "var(--color-text)", color: "var(--color-bg)" }}>
+                  <span
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-lg px-3 py-2 text-xs text-left leading-relaxed pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg"
+                    style={{ backgroundColor: "var(--color-text)", color: "var(--color-bg)" }}
+                  >
                     {note}
                   </span>
                 </span>
@@ -78,14 +110,19 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="grid lg:grid-cols-4 gap-10">
-
         <section>
-          <SectionHeader href="/members?house=National+Assembly&sort=most-active" title="Most Active MPs" />
+          <SectionHeader
+            href="/members?house=National+Assembly&sort=most-active"
+            title="Most Active MPs"
+          />
           <MemberList members={topMPs} />
         </section>
 
         <section>
-          <SectionHeader href="/members?house=Senate&sort=most-active" title="Most Active Senators" />
+          <SectionHeader
+            href="/members?house=Senate&sort=most-active"
+            title="Most Active Senators"
+          />
           <MemberList members={topSenators} />
         </section>
 
@@ -94,25 +131,41 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           <ol className="space-y-3">
             {recentBills.map((b: any, i: number) => (
               <li key={b.id} className="flex gap-3">
-                <span className="w-5 text-right text-sm shrink-0 pt-0.5"
-                      style={{ color: "var(--color-muted)" }}>{i + 1}</span>
+                <span
+                  className="w-5 text-right text-sm shrink-0 pt-0.5"
+                  style={{ color: "var(--color-muted)" }}
+                >
+                  {i + 1}
+                </span>
                 <div className="flex-1 min-w-0">
-                  <Link to={`/bills/${b.id}`}
-                        className="text-sm font-medium hover:underline line-clamp-2 leading-snug"
-                        style={{ color: "var(--color-accent)" }}>
+                  <Link
+                    to={`/bills/${b.id}`}
+                    className="text-sm font-medium hover:underline line-clamp-2 leading-snug"
+                    style={{ color: "var(--color-accent)" }}
+                  >
                     {b.name}
                   </Link>
                   <div className="text-xs mt-0.5" style={{ color: "var(--color-muted)" }}>
-                    {b.sponsorSlug
-                      ? <Link to={`/members/${b.sponsorSlug}`}
-                              className="hover:underline"
-                              style={{ color: "var(--color-muted)" }}>
-                          {b.sponsor}
-                        </Link>
-                      : <span>{b.sponsor}</span>
-                    }
+                    {b.sponsorSlug ? (
+                      <Link
+                        to={`/members/${b.sponsorSlug}`}
+                        className="hover:underline"
+                        style={{ color: "var(--color-muted)" }}
+                      >
+                        {b.sponsor}
+                      </Link>
+                    ) : (
+                      <span>{b.sponsor}</span>
+                    )}
                     {b.tabledDate && (
-                      <span> · {new Date(b.tabledDate).toLocaleDateString("en-KE", { month: "short", year: "numeric" })}</span>
+                      <span>
+                        {" "}
+                        ·{" "}
+                        {new Date(b.tabledDate).toLocaleDateString("en-KE", {
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -126,16 +179,28 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           <ol className="space-y-3">
             {recentTopics.map((t: any, i: number) => (
               <li key={t.id} className="flex gap-3">
-                <span className="w-5 text-right text-sm shrink-0 pt-0.5"
-                      style={{ color: "var(--color-muted)" }}>{i + 1}</span>
+                <span
+                  className="w-5 text-right text-sm shrink-0 pt-0.5"
+                  style={{ color: "var(--color-muted)" }}
+                >
+                  {i + 1}
+                </span>
                 <div className="flex-1 min-w-0">
-                  <Link to={`/topics/${t.id}`}
-                        className="text-sm font-medium hover:underline line-clamp-2 leading-snug"
-                        style={{ color: "var(--color-accent)" }}>
+                  <Link
+                    to={`/topics/${t.id}`}
+                    className="text-sm font-medium hover:underline line-clamp-2 leading-snug"
+                    style={{ color: "var(--color-accent)" }}
+                  >
                     {t.title}
                   </Link>
                   <div className="text-xs mt-0.5" style={{ color: "var(--color-muted)" }}>
-                    <span>{new Date(t.date).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                    <span>
+                      {new Date(t.date).toLocaleDateString("en-KE", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
                     <span> · {t.house}</span>
                   </div>
                 </div>
@@ -143,22 +208,28 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             ))}
           </ol>
         </section>
-
       </div>
 
       <section className="mt-16">
         <SectionHeader href="/sittings" title="Recent Sittings" />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-px"
-             style={{ backgroundColor: "var(--color-border)" }}>
+        <div
+          className="grid sm:grid-cols-2 lg:grid-cols-5 gap-px"
+          style={{ backgroundColor: "var(--color-border)" }}
+        >
           {recentSittings.map((s: any) => (
-            <Link key={s.url} to={`/sittings/${s.url.split("/").filter(Boolean).pop()}`}
-                  className="block py-5 px-4 transition-colors"
-                  style={{ backgroundColor: "var(--color-bg)" }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-surface)")}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--color-bg)")}>
+            <Link
+              key={s.url}
+              to={`/sittings/${s.url.split("/").filter(Boolean).pop()}`}
+              className="block py-5 px-4 transition-colors"
+              style={{ backgroundColor: "var(--color-bg)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-surface)")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-bg)")}
+            >
               <div className="text-xs mb-1" style={{ color: "var(--color-muted)" }}>
                 {new Date(s.date).toLocaleDateString("en-KE", {
-                  day: "numeric", month: "short", year: "numeric",
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
                 })}
               </div>
               <div className="text-sm font-medium truncate">{s.house}</div>
@@ -169,7 +240,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           ))}
         </div>
       </section>
-
     </div>
   );
 }
@@ -179,21 +249,30 @@ function MemberList({ members }: { members: any[] }) {
     <ol className="space-y-3">
       {members.map((m: any, i: number) => (
         <li key={m.slug} className="flex items-center gap-3">
-          <span className="w-5 text-right text-sm shrink-0"
-                style={{ color: "var(--color-muted)" }}>{i + 1}</span>
-          {m.photoUrl
-            ? <img src={m.photoUrl} alt={m.name}
-                   className="w-8 h-8 rounded-full object-cover shrink-0"
-                   style={{ border: "1px solid var(--color-border)" }} />
-            : <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-serif"
-                   style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}>
-                {m.name[0]}
-              </div>
-          }
+          <span className="w-5 text-right text-sm shrink-0" style={{ color: "var(--color-muted)" }}>
+            {i + 1}
+          </span>
+          {m.photoUrl ? (
+            <img
+              src={m.photoUrl}
+              alt={m.name}
+              className="w-8 h-8 rounded-full object-cover shrink-0"
+              style={{ border: "1px solid var(--color-border)" }}
+            />
+          ) : (
+            <div
+              className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-serif"
+              style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}
+            >
+              {m.name[0]}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
-            <Link to={`/members/${m.slug}`}
-                  className="text-sm font-medium hover:underline truncate block"
-                  style={{ color: "var(--color-accent)" }}>
+            <Link
+              to={`/members/${m.slug}`}
+              className="text-sm font-medium hover:underline truncate block"
+              style={{ color: "var(--color-accent)" }}
+            >
               {m.name}
             </Link>
             <span className="text-xs" style={{ color: "var(--color-muted)" }}>
