@@ -46,19 +46,11 @@ export default function App() {
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <span>
               Developed by{" "}
-              <a href="https://github.com/mwananchi-tech"
+              <a href="https://mwananchi-tech.github.io"
                  target="_blank" rel="noopener noreferrer"
                  className="hover:underline"
                  style={{ color: "var(--color-accent)" }}>
                 Mwananchi Tech
-              </a>
-            </span>
-            <span className="hidden sm:inline" style={{ color: "var(--color-border)" }}>·</span>
-            <span>
-              Data sourced from{" "}
-              <a href="https://mzalendo.com" target="_blank" rel="noopener noreferrer"
-                 className="hover:underline" style={{ color: "var(--color-accent)" }}>
-                Mzalendo Trust
               </a>
             </span>
             <span className="hidden sm:inline" style={{ color: "var(--color-border)" }}>·</span>

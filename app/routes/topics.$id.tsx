@@ -2,6 +2,7 @@ import { Link, data } from "react-router";
 import type { Route } from "./+types/topics.$id";
 import { getTopic, getTopicSpeakers } from "~/lib/queries/topics.server";
 import { MarkdownContent } from "~/components/MarkdownContent";
+import { ModelBadge } from "~/components/ModelBadge";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const topic = await getTopic(params.id!);
@@ -33,8 +34,9 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
     ? t.sittingUrl
     : `https://mzalendo.com${t.sittingUrl}`;
 
-  const speakerSummaries = speakers.filter((s: any) => s.summary).map((s: any) => s.summary as string);
+  const speakerSummaries = speakers.filter((s: any) => s.summary);
   const hasSummaries = speakerSummaries.length > 0;
+  // speakerSummaries is now [{summary, summaryModel, ...}] not [string]
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
@@ -90,8 +92,11 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
         </div>
         {hasSummaries ? (
           <div className="space-y-3">
-            {speakerSummaries.map((summary, i) => (
-              <MarkdownContent key={i} content={summary} />
+            {speakerSummaries.map((s: any, i: number) => (
+              <div key={i}>
+                <MarkdownContent content={s.summary} />
+                <ModelBadge model={s.summaryModel} />
+              </div>
             ))}
           </div>
         ) : (

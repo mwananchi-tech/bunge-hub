@@ -33,9 +33,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         <h1 className="font-serif text-5xl font-light mb-3">
           Kenya's parliamentary record,<br />open and queryable.
         </h1>
-        <p className="text-lg max-w-xl" style={{ color: "var(--color-muted)" }}>
+        <p className="text-lg max-w-xl mb-4" style={{ color: "var(--color-muted)" }}>
           Raw data from the 13th Parliament. Every bill, every debate, every contribution:
           structured, searchable, and openly available.
+        </p>
+        <p className="text-sm max-w-lg" style={{ color: "var(--color-muted)", opacity: 0.75 }}>
+          Summaries generated progressively using open-source AI models.
         </p>
       </div>
 

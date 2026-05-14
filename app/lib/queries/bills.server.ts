@@ -60,7 +60,8 @@ export async function getBill(id: string) {
 export async function getBillJourney(billId: string) {
   return db`
     SELECT bm.id, bm.date, bm.house, bm.stage, bm.speech_count,
-           bm.section_title, s.url AS sitting_url, s.session_type,
+           bm.section_title, bm.summary AS node_summary, bm.summary_model AS node_summary_model,
+           s.url AS sitting_url, s.session_type,
            json_agg(
              json_build_object(
                'name',     coalesce(m.name, sp.name),
@@ -69,7 +70,8 @@ export async function getBillJourney(billId: string) {
                'party',    m.party,
                'speeches', bms.speech_count,
                'text',     bms.contributions_text,
-               'summary',  bms.summary
+               'summary',  bms.summary,
+               'summaryModel', bms.summary_model
              )
              ORDER BY bms.speech_count DESC
            ) AS speakers

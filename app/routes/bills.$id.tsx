@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Link, data } from "react-router";
 import { MarkdownContent } from "~/components/MarkdownContent";
+import { ModelBadge } from "~/components/ModelBadge";
 import {
   ReactFlow, Background, Controls, MiniMap,
   type Node, type Edge, type NodeProps,
@@ -151,7 +152,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
           )}
         </div>
         {bill.summary
-          ? <MarkdownContent content={bill.summary} />
+          ? <><MarkdownContent content={bill.summary} /><ModelBadge model={bill.summaryModel} /></>
           : <p className="text-sm" style={{ color: "var(--color-muted)" }}>
               A plain-language summary of this bill's full legislative journey will appear here once the
               enrichment pipeline runs — covering stages reached, key debates, and the outcome.
@@ -222,7 +223,18 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
+              {/* Node-level debate summary (bill_mentions.summary) */}
+              {selected.nodeSummary && (
+                <div className="mb-5 p-4 rounded-lg"
+                     style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+                  <div className="text-xs font-medium uppercase tracking-widest mb-2"
+                       style={{ color: "var(--color-muted)" }}>Debate Summary</div>
+                  <MarkdownContent content={selected.nodeSummary} />
+                  <ModelBadge model={selected.nodeSummaryModel} />
+                </div>
+              )}
+
+              <div className={selected.nodeSummary ? "" : "grid md:grid-cols-2 gap-6"}>
                 {/* Speakers */}
                 <div>
                   <div className="text-xs font-medium uppercase tracking-widest mb-3" style={{ color: "var(--color-muted)" }}>
@@ -265,29 +277,31 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                   </div>
                 </div>
 
-                {/* Summary */}
-                <div>
-                  <div className="text-xs font-medium uppercase tracking-widest mb-3" style={{ color: "var(--color-muted)" }}>
-                    Summary
+                {/* Per-speaker summary — only shown when no node-level summary exists */}
+                {!selected.nodeSummary && (
+                  <div>
+                    <div className="text-xs font-medium uppercase tracking-widest mb-3" style={{ color: "var(--color-muted)" }}>
+                      Summary
+                    </div>
+                    {selected.speakers?.[0]?.summary
+                      ? <><MarkdownContent content={selected.speakers[0].summary} /><ModelBadge model={selected.speakers[0].summaryModel} /></>
+                      : (
+                        <div>
+                          <p className="text-sm mb-3" style={{ color: "var(--color-muted)" }}>
+                            No AI summary yet for this debate segment.
+                          </p>
+                          {transcriptUrl && (
+                            <Link to={transcriptUrl}
+                                  className="text-xs hover:underline"
+                                  style={{ color: "var(--color-accent)" }}>
+                              Read the full debate in the transcript →
+                            </Link>
+                          )}
+                        </div>
+                      )
+                    }
                   </div>
-                  {selected.speakers?.[0]?.summary
-                    ? <MarkdownContent content={selected.speakers[0].summary} />
-                    : (
-                      <div>
-                        <p className="text-sm mb-3" style={{ color: "var(--color-muted)" }}>
-                          No AI summary yet for this debate segment.
-                        </p>
-                        {transcriptUrl && (
-                          <Link to={transcriptUrl}
-                                className="text-xs hover:underline"
-                                style={{ color: "var(--color-accent)" }}>
-                            Read the full debate in the transcript →
-                          </Link>
-                        )}
-                      </div>
-                    )
-                  }
-                </div>
+                )}
               </div>
             </div>
           )}
