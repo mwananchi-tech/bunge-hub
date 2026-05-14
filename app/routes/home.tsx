@@ -113,7 +113,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         <section>
           <SectionHeader
             href="/members?house=National+Assembly&sort=most-active"
-            title="Most Active MPs"
+            title="Most Active NA Members"
           />
           <MemberList members={topMPs} />
         </section>

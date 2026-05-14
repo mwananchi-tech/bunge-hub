@@ -62,12 +62,11 @@ export async function listMembers({
   return db`
     SELECT m.id, m.name, m.slug, m.photo_url, m.party, m.house, m.constituency,
            m.role, m.speeches_total, m.bills_total,
-           coalesce(sum(ss.speech_count), 0)::int  AS total_speeches,
-           count(DISTINCT b.id)::int               AS bills_sponsored
+           coalesce(sum(ss.speech_count), 0)::int                     AS total_speeches,
+           (SELECT count(*) FROM bills b WHERE b.sponsor_id = m.id)::int AS bills_sponsored
     FROM members m
     LEFT JOIN speakers sp ON sp.member_id = m.id
     LEFT JOIN sitting_speakers ss ON ss.speaker_id = sp.id
-    LEFT JOIN bills b ON b.sponsor_id = m.id
     WHERE m.parliament = '13th-parliament'
     ${houseFilter}
     ${searchFilter}
