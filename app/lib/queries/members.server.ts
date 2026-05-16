@@ -111,14 +111,23 @@ export async function getMemberBills(memberId: string, page = 1, limit = 20) {
 
 export async function getMemberTopics(memberId: string, page = 1, limit = 30) {
   const offset = (page - 1) * limit;
+  // GROUP BY (title, section_type, date, house) rather than topic id to collapse two
+  // classes of duplicates at read time without touching the underlying data:
+  // 1. A member may have multiple speaker rows (name variants) all linked to the same topic.
+  // 2. mzalendo occasionally publishes the same sitting under two different URLs, producing
+  //    two topic records with identical content but different UUIDs. min(t.id::text)::uuid
+  //    picks one canonical id for navigation; max() picks the best available summary.
   return db`
-    SELECT t.id, t.title, t.section_type,
-           ts.speech_count, ts.summary, s.date, s.house
+    SELECT min(t.id::text)::uuid AS id, t.title, t.section_type,
+           max(ts.speech_count) AS speech_count,
+           max(ts.summary)      AS summary,
+           s.date, s.house
     FROM topic_speakers ts
     JOIN topics t ON t.id = ts.topic_id
     JOIN sittings s ON s.id = t.sitting_id
     JOIN speakers sp ON sp.id = ts.speaker_id
     WHERE sp.member_id = ${memberId}
+    GROUP BY t.title, t.section_type, s.date, s.house
     ORDER BY s.date DESC
     LIMIT ${limit + 1} OFFSET ${offset}
   `;

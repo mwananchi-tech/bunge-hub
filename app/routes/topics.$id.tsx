@@ -45,7 +45,8 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
     : `https://mzalendo.com${t.sittingUrl}`;
 
   const speakerSummaries = speakers.filter((s: any) => s.summary);
-  const hasSummaries = speakerSummaries.length > 0;
+  const hasTopicSummary = !!t.summary;
+  const hasSummaries = hasTopicSummary || speakerSummaries.length > 0;
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
@@ -132,7 +133,12 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
             </span>
           )}
         </div>
-        {hasSummaries ? (
+        {hasTopicSummary ? (
+          <>
+            <MarkdownContent content={t.summary} />
+            <ModelBadge model={t.summaryModel} />
+          </>
+        ) : hasSummaries ? (
           <div className="space-y-3">
             {speakerSummaries.map((s: any, i: number) => (
               <div key={i}>
