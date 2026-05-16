@@ -61,6 +61,11 @@ export async function getBill(id: string) {
 }
 
 export async function getBillJourney(billId: string) {
+  // The subquery pre-aggregates bill_mention_speakers by effective name before
+  // json_agg to avoid inflated speaker counts. Without it, a member with multiple
+  // speaker rows (name variants) appears multiple times in the speakers list.
+  // string_agg concatenates all contribution text across variants; max() picks the
+  // best available summary where one exists.
   return db`
     SELECT bm.id, bm.date, bm.house, bm.stage, bm.speech_count,
            bm.section_title, bm.summary AS node_summary, bm.summary_model AS node_summary_model,

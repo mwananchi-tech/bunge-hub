@@ -11,6 +11,15 @@ export type SearchResult = {
 
 export async function search(query: string, limit = 20): Promise<SearchResult[]> {
   if (query.trim().length < 2) return [];
+  // Three branches unified by UNION ALL, each using a different matching strategy:
+  // - Members: pg_trgm word_similarity for fuzzy name/constituency matching. The %>>
+  //   operator (word similarity threshold) drives the WHERE clause; greatest() across
+  //   all similarity variants produces a comparable score.
+  // - Bills: full-text search via websearch_to_tsquery with ILIKE fallback for short
+  //   queries that don't produce valid tsquery tokens. ts_rank scores the results.
+  // - Topics: same full-text + ILIKE approach as bills.
+  // All three branches produce the same column shape so ORDER BY score DESC applies
+  // uniformly across types. Requires pg_trgm extension for member matching.
   return db<SearchResult[]>`
     SELECT * FROM (
       SELECT 'member'::text                                                  AS type,

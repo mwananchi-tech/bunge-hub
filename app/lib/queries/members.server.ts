@@ -59,6 +59,9 @@ export async function listMembers({
           ? db`ORDER BY bills_sponsored DESC NULLS LAST, m.name`
           : db`ORDER BY m.name`;
 
+  // bills_sponsored uses a correlated subquery rather than a LEFT JOIN to avoid
+  // multiplying sitting_speakers rows. Joining bills directly inflates speech counts
+  // because each bill adds rows to the aggregate.
   return db`
     SELECT m.id, m.name, m.slug, m.photo_url, m.party, m.house, m.constituency,
            m.role, m.speeches_total, m.bills_total,
@@ -90,6 +93,8 @@ export async function getMember(slug: string) {
 
 export async function getMemberBills(memberId: string, page = 1, limit = 20) {
   const offset = (page - 1) * limit;
+  // Groups by bill rather than by mention so a member who spoke at multiple stages
+  // of the same bill gets one row with cumulative speech count and all distinct stages.
   return db`
     SELECT b.id, b.name, b.bill_number, b.year,
            count(DISTINCT bms.bill_mention_id)::int        AS segments,
