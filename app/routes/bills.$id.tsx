@@ -43,8 +43,9 @@ export function meta({ data }: Route.MetaArgs) {
   return [{ title: `${data?.bill?.name ?? "Bill"} | Bunge Hub` }];
 }
 
-function BillStageNode({ data: d, selected }: NodeProps) {
+function BillStageNode({ data: d }: NodeProps) {
   const color = STAGE_COLORS[d.stage] ?? "var(--color-muted)";
+  const isSelected = !!d.isSelected;
   return (
     <div
       style={{
@@ -53,8 +54,8 @@ function BillStageNode({ data: d, selected }: NodeProps) {
         minWidth: "180px",
         maxWidth: "200px",
         backgroundColor: "var(--color-bg)",
-        border: `2px solid ${selected ? color : "var(--color-border)"}`,
-        boxShadow: selected ? `0 0 0 3px ${color}22` : "0 1px 4px rgba(0,0,0,.08)",
+        border: `2px solid ${isSelected ? "var(--color-accent)" : "var(--color-border)"}`,
+        boxShadow: isSelected ? "0 0 0 3px var(--color-accent)33" : "0 1px 4px rgba(0,0,0,.08)",
         cursor: "pointer",
         transition: "all .15s",
       }}
@@ -118,15 +119,21 @@ function buildFlow(journey: any[]): { nodes: Node[]; edges: Edge[] } {
 export default function BillDetail({ loaderData }: Route.ComponentProps) {
   const { bill, journey, from } = loaderData;
   const [selected, setSelected] = useState<any>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [shownCount, setShownCount] = useState(8);
-  const { nodes, edges } = buildFlow(journey);
+  const { nodes: baseNodes, edges } = buildFlow(journey);
+  const nodes = baseNodes.map((n) => ({
+    ...n,
+    data: { ...n.data, isSelected: n.id === selectedId },
+  }));
 
   const BATCH = 8;
 
   const onNodeClick = useCallback((_: any, node: Node) => {
     setSelected((s: any) => {
       const next = s?.id === node.id ? null : node.data;
-      setShownCount(BATCH); // reset when switching nodes
+      setSelectedId(next ? node.id : null);
+      setShownCount(BATCH);
       return next;
     });
   }, []);
