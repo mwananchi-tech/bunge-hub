@@ -29,11 +29,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const q = url.searchParams.get("q") ?? undefined;
   const sort = (url.searchParams.get("sort") ?? "recent") as BillSort;
-  const house = url.searchParams.get("house") ?? undefined;
   const page = Number(url.searchParams.get("page") ?? 1);
   const [rows, total] = await Promise.all([
-    listBills({ q, sort, house, page, limit: LIMIT }),
-    countBills({ q, house }),
+    listBills({ q, sort, page, limit: LIMIT }),
+    countBills({ q }),
   ]);
   const hasMore = rows.length > LIMIT;
   const totalPages = Math.ceil(total / LIMIT);
@@ -41,7 +40,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     bills: rows.slice(0, LIMIT),
     q,
     sort,
-    house,
     page,
     hasMore,
     totalPages,
@@ -54,7 +52,7 @@ export function meta() {
 }
 
 export default function BillsIndex({ loaderData }: Route.ComponentProps) {
-  const { bills, q, sort, house, page, hasMore, totalPages, searchStr } = loaderData;
+  const { bills, q, sort, page, hasMore, totalPages, searchStr } = loaderData;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
@@ -68,18 +66,7 @@ export default function BillsIndex({ loaderData }: Route.ComponentProps) {
       <PageToolbar
         q={q}
         searchPlaceholder="Search bills…"
-        filterGroups={[
-          {
-            paramName: "house",
-            current: house ?? "",
-            pills: [
-              { value: "", label: "Both houses" },
-              { value: "National Assembly", label: "National Assembly" },
-              { value: "Senate", label: "Senate" },
-            ],
-            preserveParams: { sort, q },
-          },
-        ]}
+        filterGroups={[]}
         sort={{ current: sort, options: SORT_OPTIONS }}
       />
 
