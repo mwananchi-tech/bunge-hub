@@ -16,4 +16,7 @@ export const db: postgres.Sql =
     max: 10,
     idle_timeout: 30,
     transform: postgres.camel,
+    connection: {
+      search_path: "public",
+    },
   }));
