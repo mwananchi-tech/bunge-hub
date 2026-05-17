@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 
+import { InfoTooltip } from "~/components/InfoTooltip";
 import {
   getHomeStats,
   getRecentSittings,
@@ -65,7 +66,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             value: stats.bills,
             note: "Derived from bills where a sponsor was identified in the transcript. Some sponsors could not be matched, and some entries may be procedural items rather than new legislation.",
           },
-          { label: "Topics", value: stats.topics },
+          {
+            label: "Topics",
+            value: stats.topics,
+            note: "Questions, statements, motions, and other non-bill discussion items extracted from the Hansard. Some entries may overlap with bill debates where the section heading does not follow a standard format.",
+          },
         ].map(({ label, value, note }) => (
           <div
             key={label}
@@ -80,30 +85,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               style={{ color: "var(--color-muted)" }}
             >
               {label}
-              {note && (
-                <span className="relative group cursor-default">
-                  <svg
-                    className="w-3 h-3 inline-block"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    style={{ color: "var(--color-muted)", opacity: 0.55 }}
-                  >
-                    <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
-                    <path
-                      d="M8 7v4M8 5.5v.5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <span
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-lg px-3 py-2 text-xs text-left leading-relaxed pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg"
-                    style={{ backgroundColor: "var(--color-text)", color: "var(--color-bg)" }}
-                  >
-                    {note}
-                  </span>
-                </span>
-              )}
+              {note && <InfoTooltip text={note} />}
             </div>
           </div>
         ))}
@@ -114,6 +96,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           <SectionHeader
             href="/members?house=National+Assembly&sort=most-active"
             title="Most Active NA Members"
+            tooltip="Based on recorded speeches in the Hansard. Occasional name variations in transcripts may affect ranking."
           />
           <MemberList members={topMPs} />
         </section>
@@ -122,6 +105,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           <SectionHeader
             href="/members?house=Senate&sort=most-active"
             title="Most Active Senators"
+            tooltip="Based on recorded speeches in the Hansard. Occasional name variations in transcripts may affect ranking."
           />
           <MemberList members={topSenators} />
         </section>
@@ -285,10 +269,21 @@ function MemberList({ members }: { members: any[] }) {
   );
 }
 
-function SectionHeader({ href, title }: { href: string; title: string }) {
+function SectionHeader({
+  href,
+  title,
+  tooltip,
+}: {
+  href: string;
+  title: string;
+  tooltip?: string;
+}) {
   return (
     <div className="flex items-baseline justify-between mb-4">
-      <h2 className="font-serif text-lg">{title}</h2>
+      <div className="flex items-center gap-1.5">
+        <h2 className="font-serif text-lg">{title}</h2>
+        {tooltip && <InfoTooltip text={tooltip} />}
+      </div>
       <Link to={href} className="text-xs hover:underline" style={{ color: "var(--color-muted)" }}>
         View all →
       </Link>

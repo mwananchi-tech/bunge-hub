@@ -1,5 +1,6 @@
 import { Link, data } from "react-router";
 
+import { InfoTooltip } from "~/components/InfoTooltip";
 import { Pagination } from "~/components/Pagination";
 import { getFromParam } from "~/lib/navigation";
 import {
@@ -173,27 +174,10 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
             <Stat label="Speeches" value={stats?.totalSpeeches ?? 0} />
             <Stat label="Bills debated" value={billCount} />
             <Stat label="Topics raised" value={topicCount} />
-            <div className="relative group">
-              <svg
-                className="w-3.5 h-3.5 cursor-help"
-                style={{ color: "var(--color-muted)" }}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path strokeLinecap="round" d="M12 16v-4M12 8h.01" />
-              </svg>
-              <div
-                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10"
-                style={{ backgroundColor: "#1c1917", color: "#fffdf9" }}
-              >
-                These figures are derived from the official Hansard. They reflect recorded activity
-                and may not capture every contribution. Occasional name variations in transcripts
-                can affect matching.
-              </div>
-            </div>
+            <InfoTooltip
+              text="These figures are derived from the official Hansard. They reflect recorded activity and may not capture every contribution. Occasional name variations in transcripts can affect matching."
+              width="w-64"
+            />
           </div>
         </div>
       </div>
@@ -260,30 +244,10 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
             <p className="text-xs" style={{ color: "var(--color-muted)" }}>
               Bills identified from transcript text where this member moved a reading.
             </p>
-            <span className="relative group cursor-default shrink-0">
-              <svg
-                className="w-3 h-3"
-                viewBox="0 0 16 16"
-                fill="none"
-                style={{ color: "var(--color-muted)", opacity: 0.55 }}
-              >
-                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
-                <path
-                  d="M8 7v4M8 5.5v.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span
-                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-lg px-3 py-2 text-xs text-left leading-relaxed pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg"
-                style={{ backgroundColor: "var(--color-text)", color: "var(--color-bg)" }}
-              >
-                Sponsorship is inferred from contribution text using name matching. Some bills may
-                be missing if the member&apos;s name could not be resolved, and a small number of
-                entries may be procedural motions rather than substantive legislation.
-              </span>
-            </span>
+            <InfoTooltip
+              text="Sponsorship is inferred from contribution text using name matching. Some bills may be missing if the member's name could not be resolved, and a small number of entries may be procedural motions rather than substantive legislation."
+              width="w-64"
+            />
           </div>
           <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
             {sponsored.length === 0 ? (
