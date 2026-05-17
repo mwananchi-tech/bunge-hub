@@ -22,6 +22,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="icon" type="image/png" href="/logo.png" />
         <Meta />
         <Links />
+        <script
+          defer
+          data-domain="bunge-hub.mwananchi.tech"
+          src="https://plausible.c12i.xyz/js/script.js"
+        />
       </head>
       <body style={{ backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}>
         {children}
