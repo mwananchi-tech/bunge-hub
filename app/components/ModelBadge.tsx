@@ -15,7 +15,7 @@ export function ModelBadge({ model }: Props) {
   return (
     <span
       className="relative group inline-flex items-center gap-1 text-xs mt-2 cursor-default"
-      style={{ color: "var(--color-muted)", opacity: 0.7 }}
+      style={{ color: "var(--color-muted)" }}
     >
       <svg
         className="w-3 h-3"
@@ -27,8 +27,7 @@ export function ModelBadge({ model }: Props) {
         <circle cx="8" cy="8" r="6.5" />
         <path d="M5.5 8h5M8 5.5v5" strokeLinecap="round" />
       </svg>
-      {label}
-
+      model: {label}
       {/* Tooltip */}
       <span
         className="absolute top-full left-0 mt-2 w-56 rounded-lg px-3 py-2 text-xs text-left
