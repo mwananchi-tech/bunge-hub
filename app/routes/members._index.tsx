@@ -88,7 +88,7 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
           {house && <input type="hidden" name="house" value={house} />}
           {sort !== "name" && <input type="hidden" name="sort" value={sort} />}
           {q && <input type="hidden" name="q" value={q} />}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <label className="text-sm shrink-0" style={{ color: "var(--color-muted)" }}>
               Committee
             </label>
@@ -96,7 +96,7 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
               name="committee"
               value={committee ?? ""}
               onChange={(e) => e.currentTarget.form?.requestSubmit()}
-              className="flex-1 max-w-sm px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
+              className="flex-1 min-w-0 w-full sm:w-auto sm:max-w-sm px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
               style={{
                 border: "1px solid var(--color-border)",
                 backgroundColor: "var(--color-surface)",

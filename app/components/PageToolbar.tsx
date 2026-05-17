@@ -53,7 +53,7 @@ export function PageToolbar({
   return (
     <div className="flex flex-wrap items-center gap-2 mb-8">
       {/* Search — carry sort + filter params so they survive a search */}
-      <Form method="get" className="flex gap-2 flex-1 min-w-[180px] max-w-sm">
+      <Form method="get" className="flex gap-2 w-full sm:flex-1 sm:min-w-[180px] sm:max-w-sm">
         {Object.entries(hiddenParams).map(([k, v]) =>
           v ? <input key={k} type="hidden" name={k} value={v} /> : null
         )}
@@ -82,7 +82,7 @@ export function PageToolbar({
 
       {/* Filter pill groups */}
       {filterGroups.map((group) => (
-        <div key={group.paramName} className="flex gap-1">
+        <div key={group.paramName} className="flex flex-wrap gap-1">
           {group.pills.map((pill) => {
             const active = group.current === pill.value;
             const params = new URLSearchParams({

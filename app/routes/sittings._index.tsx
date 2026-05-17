@@ -70,7 +70,7 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
       {/* Toolbar — house filter + year shortcuts */}
       <div className="flex flex-wrap items-center gap-3 mb-8">
         {/* House filter */}
-        <Form method="get" className="flex gap-1">
+        <Form method="get" className="flex flex-wrap gap-1">
           {year && <input type="hidden" name="year" value={year} />}
           {HOUSES.map((h) => {
             const active = (house ?? "") === h.value;
@@ -96,7 +96,7 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
         <div className="w-px h-5 shrink-0" style={{ backgroundColor: "var(--color-border)" }} />
 
         {/* Year shortcuts */}
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           <Link
             to={yearUrl(undefined)}
             className="px-3 py-1.5 text-sm rounded"

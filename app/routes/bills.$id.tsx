@@ -284,7 +284,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                 backgroundColor: "var(--color-surface)",
               }}
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                 <div>
                   <div
                     className="text-xs font-semibold uppercase tracking-widest mb-1"
@@ -304,7 +304,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                     {selected.house} · {selected.sessionType} · {selected.speechCount} speeches
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 shrink-0">
                   {transcriptUrl && (
                     <Link
                       to={transcriptUrl}
