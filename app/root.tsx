@@ -9,6 +9,7 @@ import {
 } from "react-router";
 
 import { Nav } from "~/components/Nav";
+import { NavigationProgress } from "~/components/NavigationProgress";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -40,6 +41,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
+      <NavigationProgress />
       <Nav />
       <main className="flex-1">
         <Outlet />
