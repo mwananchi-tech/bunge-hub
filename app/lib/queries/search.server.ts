@@ -35,8 +35,8 @@ export async function search(query: string, limit = 20): Promise<SearchResult[]>
              )::float AS score
       FROM members m
       WHERE m.name %>> ${query}
-         OR m.name ILIKE ${'%' + query + '%'}
-         OR m.constituency ILIKE ${'%' + query + '%'}
+         OR m.name ILIKE ${"%" + query + "%"}
+         OR m.constituency ILIKE ${"%" + query + "%"}
 
       UNION ALL
 
@@ -48,8 +48,8 @@ export async function search(query: string, limit = 20): Promise<SearchResult[]>
              ts_rank(to_tsvector('english', b.name), websearch_to_tsquery('english', ${query}))::float
       FROM bills b
       WHERE to_tsvector('english', b.name) @@ websearch_to_tsquery('english', ${query})
-         OR b.name ILIKE ${'%' + query + '%'}
-         OR b.bill_number ILIKE ${'%' + query + '%'}
+         OR b.name ILIKE ${"%" + query + "%"}
+         OR b.bill_number ILIKE ${"%" + query + "%"}
 
       UNION ALL
 
@@ -62,7 +62,7 @@ export async function search(query: string, limit = 20): Promise<SearchResult[]>
       FROM topics t
       JOIN sittings s ON s.id = t.sitting_id
       WHERE to_tsvector('english', t.title) @@ websearch_to_tsquery('english', ${query})
-         OR t.title ILIKE ${'%' + query + '%'}
+         OR t.title ILIKE ${"%" + query + "%"}
     ) results
     ORDER BY score DESC
     LIMIT ${limit}
