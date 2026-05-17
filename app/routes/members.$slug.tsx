@@ -168,11 +168,32 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
               {primaryPosition}
             </p>
           )}
-          <div className="flex flex-wrap gap-5 text-sm">
+          <div className="flex flex-wrap items-center gap-5 text-sm">
             <Stat label="Sittings" value={stats?.sittingsAttended ?? 0} />
             <Stat label="Speeches" value={stats?.totalSpeeches ?? 0} />
             <Stat label="Bills debated" value={billCount} />
             <Stat label="Topics raised" value={topicCount} />
+            <div className="relative group">
+              <svg
+                className="w-3.5 h-3.5 cursor-help"
+                style={{ color: "var(--color-muted)" }}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path strokeLinecap="round" d="M12 16v-4M12 8h.01" />
+              </svg>
+              <div
+                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10"
+                style={{ backgroundColor: "#1c1917", color: "#fffdf9" }}
+              >
+                These figures are derived from the official Hansard. They reflect recorded activity
+                and may not capture every contribution. Occasional name variations in transcripts
+                can affect matching.
+              </div>
+            </div>
           </div>
         </div>
       </div>
