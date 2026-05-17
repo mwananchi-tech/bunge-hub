@@ -1,5 +1,7 @@
 import { Link } from "react-router";
 
+import { fromParam } from "~/lib/navigation";
+
 import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
 import { type BillSort, countBills, listBills } from "~/lib/queries/bills.server";
@@ -81,7 +83,7 @@ export default function BillsIndex({ loaderData }: Route.ComponentProps) {
             .filter(Boolean)
             .sort((a: string, z: string) => STAGES_ORDER.indexOf(a) - STAGES_ORDER.indexOf(z));
           return (
-            <Link key={b.id} to={`/bills/${b.id}`} className="flex items-start gap-4 py-5 group">
+            <Link key={b.id} to={`/bills/${b.id}${fromParam("/bills", searchStr)}`} className="flex items-start gap-4 py-5 group">
               <div className="flex-1 min-w-0">
                 <div
                   className="text-sm font-medium group-hover:underline leading-snug"

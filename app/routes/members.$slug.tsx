@@ -1,6 +1,7 @@
 import { Link, data } from "react-router";
 
 import { Pagination } from "~/components/Pagination";
+import { getFromParam } from "~/lib/navigation";
 import {
   getMember,
   getMemberBillCount,
@@ -25,6 +26,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const tab = (url.searchParams.get("tab") ?? "sponsored") as Tab;
   const page = Math.max(1, Number(url.searchParams.get("page") ?? 1));
+  const from = getFromParam(url, "/members");
 
   const [stats, sponsored, billCount, topicCount] = await Promise.all([
     getMemberStats(member.id),
@@ -50,6 +52,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       page,
       hasMore,
       searchStr,
+      from,
     };
   }
   if (tab === "bills") {
@@ -67,9 +70,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       page,
       hasMore,
       searchStr,
+      from,
     };
   }
-  // default: sponsored tab (no pagination needed — most members have few sponsored bills)
+  // default: sponsored tab (no pagination needed since most members have few sponsored bills)
   return {
     member,
     stats,
@@ -82,6 +86,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     page,
     hasMore: false,
     searchStr,
+    from,
   };
 }
 
@@ -111,6 +116,14 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="text-sm mb-6" style={{ color: "var(--color-muted)" }}>
+        <Link to={loaderData.from} className="hover:underline">
+          Members
+        </Link>
+        {" / "}
+        <span>{m.name}</span>
+      </div>
+
       {/* Header */}
       <div className="flex gap-6 mb-10">
         {m.photoUrl ? (

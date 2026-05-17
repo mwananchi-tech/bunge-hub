@@ -2,6 +2,7 @@ import { Form, Link } from "react-router";
 
 import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
+import { fromParam } from "~/lib/navigation";
 import { type MemberSort, getCommitteesByHouse, listMembers } from "~/lib/queries/members.server";
 
 import type { Route } from "./+types/members._index";
@@ -129,7 +130,7 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
           {members.map((m: any) => (
             <Link
               key={m.slug}
-              to={`/members/${m.slug}`}
+              to={`/members/${m.slug}${fromParam("/members", searchStr)}`}
               className="flex items-center gap-3 p-4 rounded-lg border transition-all"
               style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
               onMouseEnter={(e) => {

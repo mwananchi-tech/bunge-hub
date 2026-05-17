@@ -3,15 +3,17 @@ import { Link, data } from "react-router";
 
 import { MarkdownContent } from "~/components/MarkdownContent";
 import { ModelBadge } from "~/components/ModelBadge";
+import { getFromParam } from "~/lib/navigation";
 import { getTopic, getTopicSpeakers } from "~/lib/queries/topics.server";
 
 import type { Route } from "./+types/topics.$id";
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   const topic = await getTopic(params.id!);
   if (!topic) throw data("Topic not found", { status: 404 });
   const speakers = await getTopicSpeakers(params.id!);
-  return { topic, speakers };
+  const from = getFromParam(new URL(request.url), "/topics");
+  return { topic, speakers, from };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -33,7 +35,7 @@ const INITIAL = 8;
 const BATCH = 8;
 
 export default function TopicDetail({ loaderData }: Route.ComponentProps) {
-  const { topic: t, speakers } = loaderData;
+  const { topic: t, speakers, from } = loaderData;
   const [shownCount, setShownCount] = useState(INITIAL);
 
   const sittingSlug = sittingSlugFromUrl(t.sittingUrl ?? "");
@@ -53,7 +55,7 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
       {/* Header */}
       <div className="mb-8">
         <div className="text-sm mb-2" style={{ color: "var(--color-muted)" }}>
-          <Link to="/topics" className="hover:underline">
+          <Link to={from} className="hover:underline">
             Topics
           </Link>
           {" / "}

@@ -15,6 +15,7 @@ import "@xyflow/react/dist/style.css";
 
 import { MarkdownContent } from "~/components/MarkdownContent";
 import { ModelBadge } from "~/components/ModelBadge";
+import { getFromParam } from "~/lib/navigation";
 import { getBill, getBillJourney } from "~/lib/queries/bills.server";
 
 import type { Route } from "./+types/bills.$id";
@@ -30,11 +31,12 @@ const STAGE_COLORS: Record<string, string> = {
   "Publication Period Reduction": "#78716C",
 };
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   const bill = await getBill(params.id!);
   if (!bill) throw data("Bill not found", { status: 404 });
   const journey = await getBillJourney(params.id!);
-  return { bill, journey };
+  const from = getFromParam(new URL(request.url), "/bills");
+  return { bill, journey, from };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -114,7 +116,7 @@ function buildFlow(journey: any[]): { nodes: Node[]; edges: Edge[] } {
 }
 
 export default function BillDetail({ loaderData }: Route.ComponentProps) {
-  const { bill, journey } = loaderData;
+  const { bill, journey, from } = loaderData;
   const [selected, setSelected] = useState<any>(null);
   const [shownCount, setShownCount] = useState(8);
   const { nodes, edges } = buildFlow(journey);
@@ -156,7 +158,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
       {/* Bill header */}
       <div className="mb-8">
         <div className="text-sm mb-1" style={{ color: "var(--color-muted)" }}>
-          <Link to="/bills" className="hover:underline">
+          <Link to={from} className="hover:underline">
             Bills
           </Link>{" "}
           /

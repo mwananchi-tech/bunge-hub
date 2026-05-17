@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
+import { fromParam } from "~/lib/navigation";
 import { countTopics, listTopics } from "~/lib/queries/topics.server";
 
 import type { Route } from "./+types/topics._index";
@@ -68,7 +69,7 @@ export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
       ) : (
         <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
           {topics.map((t: any) => (
-            <Link key={t.id} to={`/topics/${t.id}`} className="flex items-start gap-4 py-4 group">
+            <Link key={t.id} to={`/topics/${t.id}${fromParam("/topics", searchStr)}`} className="flex items-start gap-4 py-4 group">
               <div className="flex-1 min-w-0">
                 <div
                   className="text-sm font-medium group-hover:underline"
