@@ -376,7 +376,9 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                         <div
                           className="flex items-center gap-2.5 py-1.5"
                           style={{ cursor: s.summary ? "pointer" : "default" }}
-                          onClick={() => s.summary && setExpandedSpeaker(expandedSpeaker === i ? null : i)}
+                          onClick={() =>
+                            s.summary && setExpandedSpeaker(expandedSpeaker === i ? null : i)
+                          }
                         >
                           {s.photo ? (
                             <img
@@ -424,19 +426,30 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                               className="w-3.5 h-3.5 transition-transform"
                               style={{
                                 color: "var(--color-muted)",
-                                transform: expandedSpeaker === i ? "rotate(180deg)" : "rotate(0deg)",
+                                transform:
+                                  expandedSpeaker === i ? "rotate(180deg)" : "rotate(0deg)",
                                 opacity: s.summary ? 1 : 0,
                               }}
-                              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2}
                             >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M19 9l-7 7-7-7"
+                              />
                             </svg>
                           </div>
                         </div>
                         {expandedSpeaker === i && s.summary && (
                           <div
                             className="ml-10 mb-2 p-3 rounded-lg text-xs"
-                            style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}
+                            style={{
+                              backgroundColor: "var(--color-surface)",
+                              color: "var(--color-muted)",
+                            }}
                           >
                             <MarkdownContent content={s.summary} />
                             <ModelBadge model={s.summaryModel} />
