@@ -121,6 +121,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
   const [selected, setSelected] = useState<any>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [shownCount, setShownCount] = useState(8);
+  const [expandedSpeaker, setExpandedSpeaker] = useState<number | null>(null);
   const { nodes: baseNodes, edges } = buildFlow(journey);
   const nodes = baseNodes.map((n) => ({
     ...n,
@@ -134,6 +135,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
       const next = s?.id === node.id ? null : node.data;
       setSelectedId(next ? node.id : null);
       setShownCount(BATCH);
+      setExpandedSpeaker(null);
       return next;
     });
   }, []);
@@ -368,49 +370,78 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                   >
                     Contributors
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {(selected.speakers ?? []).slice(0, shownCount).map((s: any, i: number) => (
-                      <div key={i} className="flex items-start gap-2.5">
-                        {s.photo ? (
-                          <img
-                            src={s.photo}
-                            alt={s.name}
-                            className="w-8 h-8 rounded-full object-cover shrink-0"
-                            style={{ border: "1px solid var(--color-border)" }}
-                          />
-                        ) : (
-                          <div
-                            className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-serif"
-                            style={{
-                              backgroundColor: "var(--color-bg)",
-                              color: "var(--color-muted)",
-                              border: "1px solid var(--color-border)",
-                            }}
-                          >
-                            {s.name?.[0]}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          {s.slug ? (
-                            <Link
-                              to={`/members/${s.slug}`}
-                              className="text-sm font-medium hover:underline"
-                              style={{ color: "var(--color-accent)" }}
-                            >
-                              {s.name}
-                            </Link>
+                      <div key={i}>
+                        <div
+                          className="flex items-center gap-2.5 py-1.5"
+                          style={{ cursor: s.summary ? "pointer" : "default" }}
+                          onClick={() => s.summary && setExpandedSpeaker(expandedSpeaker === i ? null : i)}
+                        >
+                          {s.photo ? (
+                            <img
+                              src={s.photo}
+                              alt={s.name}
+                              className="w-8 h-8 rounded-full object-cover shrink-0"
+                              style={{ border: "1px solid var(--color-border)" }}
+                            />
                           ) : (
-                            <span className="text-sm font-medium">{s.name}</span>
-                          )}
-                          {s.party && (
-                            <div className="text-xs" style={{ color: "var(--color-muted)" }}>
-                              {s.party}
+                            <div
+                              className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-serif"
+                              style={{
+                                backgroundColor: "var(--color-bg)",
+                                color: "var(--color-muted)",
+                                border: "1px solid var(--color-border)",
+                              }}
+                            >
+                              {s.name?.[0]}
                             </div>
                           )}
+                          <div className="flex-1 min-w-0">
+                            {s.slug ? (
+                              <Link
+                                to={`/members/${s.slug}`}
+                                className="text-sm font-medium hover:underline"
+                                style={{ color: "var(--color-accent)" }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {s.name}
+                              </Link>
+                            ) : (
+                              <span className="text-sm font-medium">{s.name}</span>
+                            )}
+                            {s.party && (
+                              <div className="text-xs" style={{ color: "var(--color-muted)" }}>
+                                {s.party}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-xs" style={{ color: "var(--color-muted)" }}>
+                              {s.speeches} sp.
+                            </span>
+                            <svg
+                              className="w-3.5 h-3.5 transition-transform"
+                              style={{
+                                color: "var(--color-muted)",
+                                transform: expandedSpeaker === i ? "rotate(180deg)" : "rotate(0deg)",
+                                opacity: s.summary ? 1 : 0,
+                              }}
+                              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
                         </div>
-                        <span className="text-xs shrink-0" style={{ color: "var(--color-muted)" }}>
-                          {s.speeches} sp.
-                        </span>
+                        {expandedSpeaker === i && s.summary && (
+                          <div
+                            className="ml-10 mb-2 p-3 rounded-lg text-xs"
+                            style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}
+                          >
+                            <MarkdownContent content={s.summary} />
+                            <ModelBadge model={s.summaryModel} />
+                          </div>
+                        )}
                       </div>
                     ))}
                     {shownCount < (selected.speakers ?? []).length && (
