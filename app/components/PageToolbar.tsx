@@ -122,6 +122,9 @@ export function PageToolbar({
           {sort && (
             <Form method="get" className="flex-1 sm:flex-none">
               {q && <input type="hidden" name="q" value={q} />}
+              {Object.entries(hiddenParams).map(([k, v]) =>
+                v ? <input key={k} type="hidden" name={k} value={v} /> : null
+              )}
               {filterGroups.map((g) =>
                 g.current ? (
                   <input key={g.paramName} type="hidden" name={g.paramName} value={g.current} />
