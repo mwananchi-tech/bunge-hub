@@ -97,7 +97,7 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
           <button
             type="button"
             onClick={() => setShowFilters((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded shrink-0 cursor-pointer"
             style={{
               border: "1px solid var(--color-border)",
               backgroundColor:
@@ -130,6 +130,18 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
             border: "1px solid var(--color-border)",
           }}
         >
+          {activeFilterCount > 0 && (
+            <div className="flex justify-end">
+              <Link
+                to={`?${new URLSearchParams({ sort, ...(q ? { q } : {}) })}`}
+                className="text-xs px-2.5 py-1 rounded hover:underline"
+                style={{ border: "1px solid var(--color-border)", color: "var(--color-text)" }}
+              >
+                Clear all filters
+              </Link>
+            </div>
+          )}
+
           {/* House filter */}
           <div>
             <div
