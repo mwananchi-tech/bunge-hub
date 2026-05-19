@@ -89,7 +89,7 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
 
       <PageToolbar
         q={q}
-        searchPlaceholder="Search members…"
+        searchPlaceholder="Search by name, party or constituency…"
         hiddenParams={{}}
         filterGroups={[]}
         sort={{ current: sort, options: SORT_OPTIONS, paramName: "sort" }}
