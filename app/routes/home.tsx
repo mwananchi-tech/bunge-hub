@@ -238,6 +238,8 @@ function MemberList({ members }: { members: any[] }) {
           </span>
           {m.photoUrl ? (
             <img
+              loading="lazy"
+              decoding="async"
               src={m.photoUrl}
               alt={m.name}
               className="w-8 h-8 rounded-full object-cover shrink-0"

@@ -171,6 +171,8 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
               s.slug ? (
                 <Link to={`/members/${s.slug}`}>
                   <img
+                    loading="lazy"
+                    decoding="async"
                     src={s.photoUrl}
                     alt={s.name}
                     className="w-8 h-8 rounded-full object-cover shrink-0"
@@ -179,6 +181,8 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
                 </Link>
               ) : (
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src={s.photoUrl}
                   alt={s.name}
                   className="w-8 h-8 rounded-full object-cover shrink-0"

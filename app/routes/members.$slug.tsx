@@ -129,6 +129,8 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
       <div className="flex gap-6 mb-10">
         {m.photoUrl ? (
           <img
+            loading="lazy"
+            decoding="async"
             src={m.photoUrl}
             alt={m.name}
             className="w-24 h-24 rounded-full object-cover shrink-0"

@@ -300,6 +300,8 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
             >
               {m.photoUrl ? (
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src={m.photoUrl}
                   alt={m.name}
                   className="w-11 h-11 rounded-full object-cover shrink-0"

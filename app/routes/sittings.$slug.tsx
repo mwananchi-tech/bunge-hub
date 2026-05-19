@@ -264,6 +264,8 @@ function Contribution({ c, speakerMap }: { c: any; speakerMap: Record<string, an
         {member?.photo ? (
           <Link to={`/members/${member.slug}`}>
             <img
+              loading="lazy"
+              decoding="async"
               src={member.photo}
               alt={member.name}
               className="w-9 h-9 rounded-full object-cover"

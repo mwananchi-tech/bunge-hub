@@ -382,6 +382,8 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                         >
                           {s.photo ? (
                             <img
+                              loading="lazy"
+                              decoding="async"
                               src={s.photo}
                               alt={s.name}
                               className="w-8 h-8 rounded-full object-cover shrink-0"
