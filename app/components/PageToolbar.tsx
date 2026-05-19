@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Form, Link } from "react-router";
 
 interface FilterPill {
@@ -30,6 +31,7 @@ interface Props {
     options: SortOption[];
     paramName?: string;
   };
+  extraActions?: ReactNode;
 }
 
 const inputStyle = {
@@ -49,6 +51,7 @@ export function PageToolbar({
   hiddenParams = {},
   filterGroups = [],
   sort,
+  extraActions,
 }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-2 mb-8">
@@ -77,7 +80,7 @@ export function PageToolbar({
         </button>
       </Form>
 
-      {/* Spacer */}
+      {/* Spacer — pushes sort + actions to the right on desktop */}
       <div className="flex-1 hidden sm:block" />
 
       {/* Filter pill groups */}
@@ -113,29 +116,34 @@ export function PageToolbar({
         </div>
       ))}
 
-      {/* Sort dropdown — hiddenParams intentionally excluded to avoid conflict with select */}
-      {sort && (
-        <Form method="get">
-          {q && <input type="hidden" name="q" value={q} />}
-          {filterGroups.map((g) =>
-            g.current ? (
-              <input key={g.paramName} type="hidden" name={g.paramName} value={g.current} />
-            ) : null
+      {/* Sort + extra actions — full width row on mobile, inline on desktop */}
+      {(sort || extraActions) && (
+        <div className="flex gap-2 w-full sm:w-auto">
+          {sort && (
+            <Form method="get" className="flex-1 sm:flex-none">
+              {q && <input type="hidden" name="q" value={q} />}
+              {filterGroups.map((g) =>
+                g.current ? (
+                  <input key={g.paramName} type="hidden" name={g.paramName} value={g.current} />
+                ) : null
+              )}
+              <select
+                name={sort.paramName ?? "sort"}
+                defaultValue={sort.current}
+                onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                className="w-full px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
+                style={inputStyle}
+              >
+                {sort.options.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </Form>
           )}
-          <select
-            name={sort.paramName ?? "sort"}
-            defaultValue={sort.current}
-            onChange={(e) => e.currentTarget.form?.requestSubmit()}
-            className="px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
-            style={inputStyle}
-          >
-            {sort.options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </Form>
+          {extraActions}
+        </div>
       )}
     </div>
   );

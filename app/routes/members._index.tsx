@@ -1,9 +1,16 @@
+import { useState } from "react";
 import { Form, Link } from "react-router";
 
 import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
 import { fromParam } from "~/lib/navigation";
-import { type MemberSort, getCommitteesByHouse, listMembers } from "~/lib/queries/members.server";
+import {
+  type MemberSort,
+  type MemberType,
+  countMembers,
+  getCommitteesByHouse,
+  listMembers,
+} from "~/lib/queries/members.server";
 
 import type { Route } from "./+types/members._index";
 
@@ -15,11 +22,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   const sort = (url.searchParams.get("sort") ?? "name") as MemberSort;
   const q = url.searchParams.get("q") ?? undefined;
   const committee = url.searchParams.get("committee") ?? undefined;
+  const memberType = (url.searchParams.get("type") ?? undefined) as MemberType | undefined;
   const page = Number(url.searchParams.get("page") ?? 1);
 
-  const [rows, committees] = await Promise.all([
-    listMembers({ house, sort, q, committee, page, limit: LIMIT }),
+  const [rows, committees, totalCount] = await Promise.all([
+    listMembers({ house, sort, q, committee, memberType, page, limit: LIMIT }),
     getCommitteesByHouse(house),
+    countMembers({ house, q, committee, memberType }),
   ]);
 
   const hasMore = rows.length > LIMIT;
@@ -29,8 +38,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     sort,
     q,
     committee,
+    memberType,
     page,
     hasMore,
+    totalCount,
     committees,
     searchStr: url.searchParams.toString(),
   };
@@ -48,14 +59,31 @@ const SORT_OPTIONS = [
 ];
 
 export default function MembersIndex({ loaderData }: Route.ComponentProps) {
-  const { members, house, sort, q, committee, page, hasMore, committees, searchStr } = loaderData;
+  const {
+    members,
+    house,
+    sort,
+    q,
+    committee,
+    memberType,
+    page,
+    hasMore,
+    totalCount,
+    committees,
+    searchStr,
+  } = loaderData;
+  const activeFilterCount = [house, memberType, committee].filter(Boolean).length;
+  const [showFilters, setShowFilters] = useState(false);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="mb-8">
         <h1 className="font-serif text-3xl mb-1">Members</h1>
         <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-          13th Parliament · 2022 to present
+          13th Parliament · 2022 to present ·{" "}
+          <span>
+            {totalCount.toLocaleString()} member{totalCount !== 1 ? "s" : ""}
+          </span>
         </p>
       </div>
 
@@ -63,64 +91,176 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
         q={q}
         searchPlaceholder="Search members…"
         hiddenParams={{}}
-        filterGroups={[
-          {
-            paramName: "house",
-            current: house ?? "",
-            pills: [
-              { value: "", label: "Both houses" },
-              { value: "National Assembly", label: "National Assembly" },
-              { value: "Senate", label: "Senate" },
-            ],
-            preserveParams: { sort, q, ...(committee ? { committee } : {}) },
-          },
-        ]}
-        sort={{
-          current: sort,
-          options: SORT_OPTIONS,
-          paramName: "sort",
-        }}
+        filterGroups={[]}
+        sort={{ current: sort, options: SORT_OPTIONS, paramName: "sort" }}
+        extraActions={
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded shrink-0"
+            style={{
+              border: "1px solid var(--color-border)",
+              backgroundColor:
+                activeFilterCount > 0 ? "var(--color-accent)" : "var(--color-surface)",
+              color: activeFilterCount > 0 ? "white" : "var(--color-text)",
+            }}
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M7 12h10M11 20h2" />
+            </svg>
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="text-xs font-semibold">{activeFilterCount}</span>
+            )}
+          </button>
+        }
       />
 
-      {/* Committee filter — below toolbar, full-width select */}
-      {committees.length > 0 && (
-        <Form method="get" className="mb-6">
-          {house && <input type="hidden" name="house" value={house} />}
-          {sort !== "name" && <input type="hidden" name="sort" value={sort} />}
-          {q && <input type="hidden" name="q" value={q} />}
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="text-sm shrink-0" style={{ color: "var(--color-muted)" }}>
-              Committee
-            </label>
-            <select
-              name="committee"
-              value={committee ?? ""}
-              onChange={(e) => e.currentTarget.form?.requestSubmit()}
-              className="flex-1 min-w-0 w-full sm:w-auto sm:max-w-sm px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
-              style={{
-                border: "1px solid var(--color-border)",
-                backgroundColor: "var(--color-surface)",
-                color: "var(--color-text)",
-              }}
+      {showFilters && (
+        <div
+          className="mb-6 p-4 rounded-lg space-y-4"
+          style={{
+            backgroundColor: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          {/* House filter */}
+          <div>
+            <div
+              className="text-xs font-medium uppercase tracking-widest mb-2"
+              style={{ color: "var(--color-muted)" }}
             >
-              <option value="">All committees</option>
-              {committees.map((c: any) => (
-                <option key={c.name} value={c.name}>
-                  {c.name.charAt(0).toUpperCase() + c.name.slice(1)} ({c.members})
-                </option>
-              ))}
-            </select>
-            {committee && (
-              <Link
-                to={`?${new URLSearchParams({ ...(house ? { house } : {}), sort, ...(q ? { q } : {}) })}`}
-                className="text-xs px-2 py-1.5 rounded"
-                style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}
-              >
-                Clear
-              </Link>
-            )}
+              House
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {[
+                { value: "", label: "Both" },
+                { value: "National Assembly", label: "National Assembly" },
+                { value: "Senate", label: "Senate" },
+              ].map((h) => {
+                const active = (house ?? "") === h.value;
+                const params = new URLSearchParams({
+                  sort,
+                  ...(q ? { q } : {}),
+                  ...(memberType ? { type: memberType } : {}),
+                  ...(committee ? { committee } : {}),
+                  ...(h.value ? { house: h.value } : {}),
+                });
+                return (
+                  <Link
+                    key={h.value}
+                    to={`?${params}`}
+                    className="px-3 py-1.5 text-sm rounded"
+                    style={{
+                      border: "1px solid var(--color-border)",
+                      backgroundColor: active ? "var(--color-accent)" : "var(--color-bg)",
+                      color: active ? "white" : "var(--color-text)",
+                    }}
+                  >
+                    {h.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </Form>
+
+          {/* Member type filter */}
+          <div>
+            <div
+              className="text-xs font-medium uppercase tracking-widest mb-2"
+              style={{ color: "var(--color-muted)" }}
+            >
+              Type
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {[
+                { value: "", label: "All" },
+                { value: "elected", label: "Elected" },
+                { value: "nominated", label: "Nominated" },
+                { value: "woman-rep", label: "Woman Rep (NA)" },
+              ].map((t) => {
+                const active = (memberType ?? "") === t.value;
+                const params = new URLSearchParams({
+                  sort,
+                  ...(q ? { q } : {}),
+                  ...(house ? { house } : {}),
+                  ...(committee ? { committee } : {}),
+                  ...(t.value ? { type: t.value } : {}),
+                });
+                return (
+                  <Link
+                    key={t.value}
+                    to={`?${params}`}
+                    className="px-3 py-1.5 text-sm rounded"
+                    style={{
+                      border: "1px solid var(--color-border)",
+                      backgroundColor: active ? "var(--color-accent)" : "var(--color-bg)",
+                      color: active ? "white" : "var(--color-text)",
+                    }}
+                  >
+                    {t.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Committee filter */}
+          {committees.length > 0 && (
+            <div>
+              <div
+                className="text-xs font-medium uppercase tracking-widest mb-2"
+                style={{ color: "var(--color-muted)" }}
+              >
+                Committee
+              </div>
+              <Form method="get">
+                {house && <input type="hidden" name="house" value={house} />}
+                {sort !== "name" && <input type="hidden" name="sort" value={sort} />}
+                {q && <input type="hidden" name="q" value={q} />}
+                {memberType && <input type="hidden" name="type" value={memberType} />}
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    name="committee"
+                    value={committee ?? ""}
+                    onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                    className="flex-1 min-w-0 w-full sm:w-auto sm:max-w-sm px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
+                    style={{
+                      border: "1px solid var(--color-border)",
+                      backgroundColor: "var(--color-bg)",
+                      color: "var(--color-text)",
+                    }}
+                  >
+                    <option value="">All committees</option>
+                    {committees.map((c: any) => (
+                      <option key={c.name} value={c.name}>
+                        {c.name.charAt(0).toUpperCase() + c.name.slice(1)} ({c.members})
+                      </option>
+                    ))}
+                  </select>
+                  {committee && (
+                    <Link
+                      to={`?${new URLSearchParams({ ...(house ? { house } : {}), sort, ...(q ? { q } : {}), ...(memberType ? { type: memberType } : {}) })}`}
+                      className="text-xs px-2 py-1.5 rounded"
+                      style={{
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-muted)",
+                      }}
+                    >
+                      Clear
+                    </Link>
+                  )}
+                </div>
+              </Form>
+            </div>
+          )}
+        </div>
       )}
 
       {members.length === 0 ? (

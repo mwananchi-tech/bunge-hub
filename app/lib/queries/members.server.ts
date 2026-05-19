@@ -1,9 +1,16 @@
 import { db } from "~/lib/db.server";
 
 export type MemberSort = "name" | "most-active" | "least-active" | "most-sponsored";
+export type MemberType = "elected" | "nominated" | "woman-rep";
 
 export async function getCommitteesByHouse(house?: string) {
   const houseFilter = house ? db`AND m.house = ${house}` : db``;
+  // committees is stored as a JSONB array of raw strings scraped from mzalendo,
+  // e.g. ["A member of the Education committee.", "The Chair of the Finance committee."]
+  // jsonb_array_elements_text implicitly lateral-joins each member to their
+  // committees array, producing one row per (member, committee) pair.
+  // normalize_committee strips the surrounding noise ("A member of the", "The Chair of",
+  // trailing "committee.") into a canonical name
   return db`
     SELECT normalize_committee(c) AS name, count(DISTINCT m.id)::int AS members
     FROM members m, jsonb_array_elements_text(m.committees) AS c
@@ -16,11 +23,41 @@ export async function getCommitteesByHouse(house?: string) {
   `;
 }
 
+export async function countMembers({
+  house,
+  q,
+  committee,
+  memberType,
+}: { house?: string; q?: string; committee?: string; memberType?: MemberType } = {}) {
+  const houseFilter = house ? db`AND m.house = ${house}` : db``;
+  const searchFilter = q
+    ? db`AND (m.name ILIKE ${"%" + q + "%"} OR m.party ILIKE ${"%" + q + "%"} OR m.constituency ILIKE ${"%" + q + "%"})`
+    : db``;
+  const committeeFilter = committee
+    ? db`AND EXISTS (SELECT 1 FROM jsonb_array_elements_text(m.committees) AS c WHERE normalize_committee(c) = ${committee})`
+    : db``;
+  const typeFilter =
+    memberType === "nominated"
+      ? db`AND m.constituency ILIKE ${"nominated%"}`
+      : memberType === "woman-rep"
+        ? db`AND m.constituency ILIKE ${"Woman Representative%"}`
+        : memberType === "elected"
+          ? db`AND m.constituency NOT ILIKE ${"nominated%"} AND (m.constituency NOT ILIKE ${"Woman Representative%"} OR m.constituency IS NULL)`
+          : db``;
+  const [r] = await db`
+    SELECT count(*)::int AS n FROM members m
+    WHERE m.parliament = '13th-parliament'
+    ${houseFilter} ${searchFilter} ${committeeFilter} ${typeFilter}
+  `;
+  return r.n as number;
+}
+
 export async function listMembers({
   house,
   sort = "name",
   q,
   committee,
+  memberType,
   page = 1,
   limit = 36,
 }: {
@@ -28,11 +65,20 @@ export async function listMembers({
   sort?: MemberSort;
   q?: string;
   committee?: string;
+  memberType?: MemberType;
   page?: number;
   limit?: number;
 } = {}) {
   const offset = (page - 1) * limit;
   const houseFilter = house ? db`AND m.house = ${house}` : db``;
+  const typeFilter =
+    memberType === "nominated"
+      ? db`AND m.constituency ILIKE ${"nominated%"}`
+      : memberType === "woman-rep"
+        ? db`AND m.constituency ILIKE ${"Woman Representative%"}`
+        : memberType === "elected"
+          ? db`AND m.constituency NOT ILIKE ${"nominated%"} AND (m.constituency NOT ILIKE ${"Woman Representative%"} OR m.constituency IS NULL)`
+          : db``;
   const searchFilter = q
     ? db`
     AND (
@@ -72,6 +118,7 @@ export async function listMembers({
     LEFT JOIN sitting_speakers ss ON ss.speaker_id = sp.id
     WHERE m.parliament = '13th-parliament'
     ${houseFilter}
+    ${typeFilter}
     ${searchFilter}
     ${committeeFilter}
     GROUP BY m.id
