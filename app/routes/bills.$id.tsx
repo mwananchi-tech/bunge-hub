@@ -43,12 +43,27 @@ export function meta({ data }: Route.MetaArgs) {
   return [{ title: `${data?.bill?.name ?? "Bill"} | Bunge Hub` }];
 }
 
+function SparkleIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      style={{ color: "var(--color-gold)", flexShrink: 0 }}
+    >
+      <path d="M12 2l2.09 7.91L22 12l-7.91 2.09L12 22l-2.09-7.91L2 12l7.91-2.09z" />
+    </svg>
+  );
+}
+
 function BillStageNode({ data: d }: NodeProps) {
   const color = STAGE_COLORS[d.stage] ?? "var(--color-muted)";
   const isSelected = !!d.isSelected;
   return (
     <div
       style={{
+        position: "relative",
         padding: "12px 16px",
         borderRadius: "10px",
         minWidth: "180px",
@@ -61,6 +76,11 @@ function BillStageNode({ data: d }: NodeProps) {
       }}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
+      {d.nodeSummary && (
+        <div style={{ position: "absolute", top: "7px", right: "8px" }}>
+          <SparkleIcon />
+        </div>
+      )}
       <div
         style={{
           fontSize: "11px",
@@ -421,6 +441,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                             )}
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
+                            {s.summary && <SparkleIcon />}
                             <span className="text-xs" style={{ color: "var(--color-muted)" }}>
                               {s.speeches} sp.
                             </span>

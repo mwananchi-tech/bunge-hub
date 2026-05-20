@@ -8,6 +8,20 @@ import { getTopic, getTopicSpeakers } from "~/lib/queries/topics.server";
 
 import type { Route } from "./+types/topics.$id";
 
+function SparkleIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      style={{ color: "var(--color-gold)", flexShrink: 0 }}
+    >
+      <path d="M12 2l2.09 7.91L22 12l-7.91 2.09L12 22l-2.09-7.91L2 12l7.91-2.09z" />
+    </svg>
+  );
+}
+
 export async function loader({ params, request }: Route.LoaderArgs) {
   const topic = await getTopic(params.id!);
   if (!topic) throw data("Topic not found", { status: 404 });
@@ -219,7 +233,8 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
                 </span>
               )}
             </div>
-            <div className="shrink-0 text-right">
+            <div className="flex items-center gap-1.5 shrink-0">
+              {s.summary && <SparkleIcon />}
               <span className="text-xs tabular-nums" style={{ color: "var(--color-muted)" }}>
                 {s.speechCount} speech{s.speechCount !== 1 ? "es" : ""}
               </span>
