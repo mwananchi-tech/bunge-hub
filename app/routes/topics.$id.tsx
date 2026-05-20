@@ -51,6 +51,7 @@ const BATCH = 8;
 export default function TopicDetail({ loaderData }: Route.ComponentProps) {
   const { topic: t, speakers, from } = loaderData;
   const [shownCount, setShownCount] = useState(INITIAL);
+  const [expandedSpeaker, setExpandedSpeaker] = useState<number | null>(null);
 
   const sittingSlug = sittingSlugFromUrl(t.sittingUrl ?? "");
   const transcriptUrl = sittingSlug
@@ -154,18 +155,11 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
             <MarkdownContent content={t.summary} />
             <ModelBadge model={t.summaryModel} />
           </>
-        ) : hasSummaries ? (
-          <div className="space-y-3">
-            {speakerSummaries.map((s: any, i: number) => (
-              <div key={i}>
-                <MarkdownContent content={s.summary} />
-                <ModelBadge model={s.summaryModel} />
-              </div>
-            ))}
-          </div>
         ) : (
           <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-            An AI-generated summary will appear here once the enrichment pipeline runs.
+            {hasSummaries
+              ? "No topic-level summary yet. Per-speaker summaries are available in the contributors list below."
+              : "An AI-generated summary will appear here once the enrichment pipeline runs."}
           </p>
         )}
       </div>
@@ -180,10 +174,25 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
 
       <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
         {speakers.slice(0, shownCount).map((s: any, i: number) => (
-          <div key={i} className="flex items-center gap-3 py-3">
-            {s.photoUrl ? (
-              s.slug ? (
-                <Link to={`/members/${s.slug}`}>
+          <div key={i}>
+            <div
+              className="flex items-center gap-3 py-3"
+              style={{ cursor: s.summary ? "pointer" : "default" }}
+              onClick={() => s.summary && setExpandedSpeaker(expandedSpeaker === i ? null : i)}
+            >
+              {s.photoUrl ? (
+                s.slug ? (
+                  <Link to={`/members/${s.slug}`} onClick={(e) => e.stopPropagation()}>
+                    <img
+                      loading="lazy"
+                      decoding="async"
+                      src={s.photoUrl}
+                      alt={s.name}
+                      className="w-8 h-8 rounded-full object-cover shrink-0"
+                      style={{ border: "1px solid var(--color-border)" }}
+                    />
+                  </Link>
+                ) : (
                   <img
                     loading="lazy"
                     decoding="async"
@@ -192,53 +201,71 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
                     className="w-8 h-8 rounded-full object-cover shrink-0"
                     style={{ border: "1px solid var(--color-border)" }}
                   />
-                </Link>
+                )
               ) : (
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src={s.photoUrl}
-                  alt={s.name}
-                  className="w-8 h-8 rounded-full object-cover shrink-0"
-                  style={{ border: "1px solid var(--color-border)" }}
-                />
-              )
-            ) : (
+                <div
+                  className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-serif text-xs"
+                  style={{
+                    backgroundColor: "var(--color-surface)",
+                    color: "var(--color-muted)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                >
+                  {s.name?.[0] ?? "?"}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                {s.slug ? (
+                  <Link
+                    to={`/members/${s.slug}`}
+                    className="text-sm font-medium hover:underline"
+                    style={{ color: "var(--color-accent)" }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {s.name}
+                  </Link>
+                ) : (
+                  <span className="text-sm font-medium">{s.name}</span>
+                )}
+                {s.party && (
+                  <span className="text-xs ml-2" style={{ color: "var(--color-muted)" }}>
+                    {s.party}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {s.summary && <SparkleIcon />}
+                <span className="text-xs tabular-nums" style={{ color: "var(--color-muted)" }}>
+                  {s.speechCount} speech{s.speechCount !== 1 ? "es" : ""}
+                </span>
+                <svg
+                  className="w-3.5 h-3.5 transition-transform"
+                  style={{
+                    color: "var(--color-muted)",
+                    transform: expandedSpeaker === i ? "rotate(180deg)" : "rotate(0deg)",
+                    opacity: s.summary ? 1 : 0,
+                  }}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            {expandedSpeaker === i && s.summary && (
               <div
-                className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-serif text-xs"
+                className="ml-11 mb-2 p-3 rounded-lg text-xs"
                 style={{
                   backgroundColor: "var(--color-surface)",
                   color: "var(--color-muted)",
-                  border: "1px solid var(--color-border)",
                 }}
               >
-                {s.name?.[0] ?? "?"}
+                <MarkdownContent content={s.summary} />
+                <ModelBadge model={s.summaryModel} />
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              {s.slug ? (
-                <Link
-                  to={`/members/${s.slug}`}
-                  className="text-sm font-medium hover:underline"
-                  style={{ color: "var(--color-accent)" }}
-                >
-                  {s.name}
-                </Link>
-              ) : (
-                <span className="text-sm font-medium">{s.name}</span>
-              )}
-              {s.party && (
-                <span className="text-xs ml-2" style={{ color: "var(--color-muted)" }}>
-                  {s.party}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {s.summary && <SparkleIcon />}
-              <span className="text-xs tabular-nums" style={{ color: "var(--color-muted)" }}>
-                {s.speechCount} speech{s.speechCount !== 1 ? "es" : ""}
-              </span>
-            </div>
           </div>
         ))}
         {speakers.length === 0 && (
