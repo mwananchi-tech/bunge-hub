@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Form, Link } from "react-router";
 
 import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
@@ -13,10 +13,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const tab = (url.searchParams.get("tab") ?? "qs") as "qs" | "hearings";
   const q = url.searchParams.get("q") ?? undefined;
+  const house = url.searchParams.get("house") ?? undefined;
   const page = Number(url.searchParams.get("page") ?? 1);
   const [rows, total] = await Promise.all([
-    listTopics({ tab, q, page, limit: LIMIT }),
-    countTopics({ tab, q }),
+    listTopics({ tab, q, house, page, limit: LIMIT }),
+    countTopics({ tab, q, house }),
   ]);
   const hasMore = rows.length > LIMIT;
   const totalPages = Math.ceil(total / LIMIT);
@@ -24,6 +25,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     topics: rows.slice(0, LIMIT),
     tab,
     q,
+    house,
     page,
     hasMore,
     totalPages,
@@ -36,7 +38,7 @@ export function meta() {
 }
 
 export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
-  const { topics, tab, q, page, hasMore, totalPages, searchStr } = loaderData;
+  const { topics, tab, q, house, page, hasMore, totalPages, searchStr } = loaderData;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
@@ -50,7 +52,7 @@ export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
       <PageToolbar
         q={q}
         searchPlaceholder="Search topics…"
-        hiddenParams={{ tab }}
+        hiddenParams={{ tab, house }}
         filterGroups={[
           {
             paramName: "tab",
@@ -59,9 +61,30 @@ export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
               { value: "qs", label: "Questions & Statements" },
               { value: "hearings", label: "Hearings" },
             ],
-            preserveParams: { q },
+            preserveParams: { q, house },
           },
         ]}
+        extraActions={
+          <Form method="get">
+            {q && <input type="hidden" name="q" value={q} />}
+            {tab && <input type="hidden" name="tab" value={tab} />}
+            <select
+              name="house"
+              defaultValue={house ?? ""}
+              onChange={(e) => e.currentTarget.form?.requestSubmit()}
+              className="px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
+              style={{
+                border: "1px solid var(--color-border)",
+                backgroundColor: "var(--color-surface)",
+                color: house ? "var(--color-text)" : "var(--color-muted)",
+              }}
+            >
+              <option value="">All houses</option>
+              <option value="National Assembly">National Assembly</option>
+              <option value="Senate">Senate</option>
+            </select>
+          </Form>
+        }
       />
 
       {topics.length === 0 ? (

@@ -13,12 +13,14 @@ const HEARING_TYPES = ["Communication From The Chair", "Communications From The 
 export async function listTopics({
   tab = "qs",
   q,
+  house,
   page = 1,
   limit = 40,
-}: { tab?: "qs" | "hearings"; q?: string; page?: number; limit?: number } = {}) {
+}: { tab?: "qs" | "hearings"; q?: string; house?: string; page?: number; limit?: number } = {}) {
   const types = tab === "hearings" ? HEARING_TYPES : QS_TYPES;
   const offset = (page - 1) * limit;
   const searchFilter = q ? db`AND t.title ILIKE ${`%${q}%`}` : db``;
+  const houseFilter = house ? db`AND s.house = ${house}` : db``;
   return db`
     SELECT t.id, t.title, t.section_type, t.speech_count,
            s.date, s.house,
@@ -28,19 +30,28 @@ export async function listTopics({
     LEFT JOIN topic_speakers ts ON ts.topic_id = t.id
     WHERE t.section_type IN (SELECT unnest(${types}::text[]))
     ${searchFilter}
+    ${houseFilter}
     GROUP BY t.id, s.date, s.house
     ORDER BY s.date DESC
     LIMIT ${limit + 1} OFFSET ${offset}
   `;
 }
 
-export async function countTopics({ tab = "qs", q }: { tab?: "qs" | "hearings"; q?: string } = {}) {
+export async function countTopics({
+  tab = "qs",
+  q,
+  house,
+}: { tab?: "qs" | "hearings"; q?: string; house?: string } = {}) {
   const types = tab === "hearings" ? HEARING_TYPES : QS_TYPES;
-  const searchFilter = q ? db`AND title ILIKE ${`%${q}%`}` : db``;
+  const searchFilter = q ? db`AND t.title ILIKE ${`%${q}%`}` : db``;
+  const houseFilter = house ? db`AND s.house = ${house}` : db``;
   const [r] = await db`
-    SELECT count(*)::int AS n FROM topics
-    WHERE section_type IN (SELECT unnest(${types}::text[]))
+    SELECT count(*)::int AS n
+    FROM topics t
+    JOIN sittings s ON s.id = t.sitting_id
+    WHERE t.section_type IN (SELECT unnest(${types}::text[]))
     ${searchFilter}
+    ${houseFilter}
   `;
   return r.n as number;
 }
