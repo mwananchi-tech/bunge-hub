@@ -33,7 +33,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta() {
-  return [{ title: "Sittings | Bunge Hub" }];
+  const description =
+    "Browse all parliamentary sittings from Kenya's 13th Parliament. Full Hansard transcripts with bills debated, speakers, and AI-generated summaries.";
+  return [
+    { title: "Sittings | Bunge Hub" },
+    { name: "description", content: description },
+    { property: "og:title", content: "Sittings | Bunge Hub" },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://bunge-hub.mwananchi.tech/sittings" },
+  ];
 }
 
 const HOUSES = [

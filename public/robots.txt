@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://bunge-hub.mwananchi.tech/sitemap.xml

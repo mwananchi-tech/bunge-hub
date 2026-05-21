@@ -40,7 +40,16 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  return [{ title: `${data?.bill?.name ?? "Bill"} | Bunge Hub` }];
+  const name = data?.bill?.name ?? "Bill";
+  const sponsor = data?.bill?.sponsor ? ` Moved by ${data.bill.sponsor}.` : "";
+  const description = `Track ${name} through Kenya's Parliament.${sponsor} Read debate summaries, speaker contributions, and follow its full legislative journey.`;
+  return [
+    { title: `${name} | Bunge Hub` },
+    { name: "description", content: description },
+    { property: "og:title", content: `${name} | Bunge Hub` },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "article" },
+  ];
 }
 
 function SparkleIcon() {

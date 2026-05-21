@@ -21,6 +21,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/png" href="/logo.png" />
+        <meta name="theme-color" content="#1c1917" />
+        <meta property="og:site_name" content="Bunge Hub" />
+        <meta name="twitter:card" content="summary" />
         <Meta />
         <Links />
         <script

@@ -31,7 +31,23 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  return [{ title: `${data?.topic?.title ?? "Topic"} | Bunge Hub` }];
+  const t = data?.topic;
+  const title = t?.title ?? "Topic";
+  const date = t?.date
+    ? new Date(t.date).toLocaleDateString("en-KE", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+  const description = [title, t?.house, date].filter(Boolean).join(" · ");
+  return [
+    { title: `${title} | Bunge Hub` },
+    { name: "description", content: description },
+    { property: "og:title", content: `${title} | Bunge Hub` },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "article" },
+  ];
 }
 
 function sittingSlugFromUrl(url: string) {

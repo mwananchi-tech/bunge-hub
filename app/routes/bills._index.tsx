@@ -49,7 +49,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta() {
-  return [{ title: "Bills | Bunge Hub" }];
+  const description =
+    "Browse all bills tabled in Kenya's 13th Parliament. Search by name, track legislative stages, and read AI-generated summaries of each debate.";
+  return [
+    { title: "Bills | Bunge Hub" },
+    { name: "description", content: description },
+    { property: "og:title", content: "Bills | Bunge Hub" },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://bunge-hub.mwananchi.tech/bills" },
+  ];
 }
 
 export default function BillsIndex({ loaderData }: Route.ComponentProps) {

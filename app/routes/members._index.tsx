@@ -49,7 +49,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta() {
-  return [{ title: "Members | Bunge Hub" }];
+  const description =
+    "Browse all Members of Parliament in Kenya's 13th Parliament. Filter by house, party, constituency, or committee and see speech and bill activity.";
+  return [
+    { title: "Members | Bunge Hub" },
+    { name: "description", content: description },
+    { property: "og:title", content: "Members | Bunge Hub" },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://bunge-hub.mwananchi.tech/members" },
+  ];
 }
 
 const SORT_OPTIONS = [

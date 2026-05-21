@@ -12,4 +12,5 @@ export default [
   route("sittings", "routes/sittings._index.tsx"),
   route("sittings/:slug", "routes/sittings.$slug.tsx"),
   route("about", "routes/about.tsx"),
+  route("sitemap.xml", "routes/sitemap[.xml].tsx"),
 ] satisfies RouteConfig;

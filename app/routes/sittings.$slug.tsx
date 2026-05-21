@@ -15,12 +15,23 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 export function meta({ data }: Route.MetaArgs) {
   const s = data?.sitting;
+  const dateStr = s
+    ? new Date(s.date).toLocaleDateString("en-KE", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+  const title = s ? `${s.house} · ${dateStr} | Bunge Hub` : "Sitting | Bunge Hub";
+  const description = s
+    ? `${s.house} sitting on ${dateStr}. Full Hansard transcript with bills debated, speaker contributions, and AI-generated summaries.`
+    : "Parliamentary sitting transcript from Kenya's 13th Parliament.";
   return [
-    {
-      title: s
-        ? `${s.house} · ${new Date(s.date).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" })} | Bunge Hub`
-        : "Sitting | Bunge Hub",
-    },
+    { title },
+    { name: "description", content: description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "article" },
   ];
 }
 

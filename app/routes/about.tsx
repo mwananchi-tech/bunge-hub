@@ -4,7 +4,16 @@ import Markdown from "react-markdown";
 import aboutContent from "~/content/about.md?raw";
 
 export function meta() {
-  return [{ title: "About | Bunge Hub" }];
+  const description =
+    "About Bunge Hub, an open-source platform exposing Kenya's parliamentary record as structured, searchable data. Learn how the pipeline works and where the data comes from.";
+  return [
+    { title: "About | Bunge Hub" },
+    { name: "description", content: description },
+    { property: "og:title", content: "About | Bunge Hub" },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://bunge-hub.mwananchi.tech/about" },
+  ];
 }
 
 export default function About() {

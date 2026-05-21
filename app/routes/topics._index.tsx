@@ -38,7 +38,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta() {
-  return [{ title: "Topics | Bunge Hub" }];
+  const description =
+    "Browse questions, statements, motions, and other topics debated in Kenya's 13th Parliament. Filter by house and type, sorted by date or speech count.";
+  return [
+    { title: "Topics | Bunge Hub" },
+    { name: "description", content: description },
+    { property: "og:title", content: "Topics | Bunge Hub" },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://bunge-hub.mwananchi.tech/topics" },
+  ];
 }
 
 export default function TopicsIndex({ loaderData }: Route.ComponentProps) {

@@ -92,7 +92,18 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  return [{ title: `${data?.member?.name ?? "Member"} | Bunge Hub` }];
+  const m = data?.member;
+  const name = m?.name ?? "Member";
+  const details = [m?.party, m?.constituency, m?.house].filter(Boolean).join(", ");
+  const description = `Parliamentary profile for ${name}${details ? ` (${details})` : ""}. Speeches, bills sponsored, and committee memberships in Kenya's 13th Parliament.`;
+  return [
+    { title: `${name} | Bunge Hub` },
+    { name: "description", content: description },
+    { property: "og:title", content: `${name} | Bunge Hub` },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "profile" },
+    ...(m?.photoUrl ? [{ property: "og:image", content: m.photoUrl }] : []),
+  ];
 }
 
 export default function MemberProfile({ loaderData }: Route.ComponentProps) {

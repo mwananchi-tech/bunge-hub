@@ -26,7 +26,16 @@ export async function loader() {
 }
 
 export function meta() {
-  return [{ title: "Bunge Hub | Kenya's parliamentary record, open and queryable" }];
+  const description =
+    "Kenya's parliamentary record, open and queryable. Browse every bill, debate, and contribution from the 13th Parliament. Structured, searchable, and openly available.";
+  return [
+    { title: "Bunge Hub | Kenya's parliamentary record, open and queryable" },
+    { name: "description", content: description },
+    { property: "og:title", content: "Bunge Hub | Kenya's parliamentary record" },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://bunge-hub.mwananchi.tech" },
+  ];
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
