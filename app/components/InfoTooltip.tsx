@@ -3,11 +3,12 @@ import { useEffect, useRef, useState } from "react";
 interface Props {
   text: string;
   width?: string;
+  iconColor?: string;
 }
 
 /** Question mark icon with a hover tooltip (desktop) and tap toggle (mobile).
  *  Repositions horizontally to stay within the viewport. */
-export function InfoTooltip({ text, width = "w-56" }: Props) {
+export function InfoTooltip({ text, width = "w-56", iconColor = "var(--color-muted)" }: Props) {
   const [open, setOpen] = useState(false);
   const [offset, setOffset] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
@@ -54,7 +55,7 @@ export function InfoTooltip({ text, width = "w-56" }: Props) {
     >
       <svg
         className="w-3.5 h-3.5"
-        style={{ color: "var(--color-muted)" }}
+        style={{ color: iconColor }}
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"

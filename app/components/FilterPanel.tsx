@@ -1,9 +1,12 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 
+import { InfoTooltip } from "~/components/InfoTooltip";
+
 interface FilterOption {
   value: string;
   label: string;
+  tooltip?: string;
 }
 
 export interface FilterGroup {
@@ -102,7 +105,7 @@ export function FilterPanel({ isOpen, groups, clearUrl, extra }: FilterPanelProp
                 <Link
                   key={opt.value}
                   to={`?${params}`}
-                  className="px-3 py-1.5 text-sm rounded"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded"
                   style={{
                     border: "1px solid var(--color-border)",
                     backgroundColor: active ? "var(--color-accent)" : "var(--color-bg)",
@@ -110,6 +113,7 @@ export function FilterPanel({ isOpen, groups, clearUrl, extra }: FilterPanelProp
                   }}
                 >
                   {opt.label}
+                  {opt.tooltip && <InfoTooltip text={opt.tooltip} iconColor="inherit" />}
                 </Link>
               );
             })}

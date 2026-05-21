@@ -83,8 +83,18 @@ export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
             current: tab,
             options: [
               { value: "", label: "All" },
-              { value: "qs", label: "Questions & Statements" },
-              { value: "hearings", label: "Hearings" },
+              {
+                value: "qs",
+                label: "Questions & Statements",
+                tooltip:
+                  "Member-initiated items: oral questions, written statements, and notices of motion tabled for debate.",
+              },
+              {
+                value: "hearings",
+                label: "Hearings",
+                tooltip:
+                  "Procedural communications from the Speaker or presiding officer: announcements, rulings, and tributes.",
+              },
             ],
             preserveParams: {
               ...(sort !== "recent" ? { sort } : {}),
