@@ -10,17 +10,29 @@ const QS_TYPES = [
 ];
 const HEARING_TYPES = ["Communication From The Chair", "Communications From The Chair"];
 
+const ALL_TYPES = [...QS_TYPES, ...HEARING_TYPES];
+
 export async function listTopics({
   tab = "qs",
   q,
   house,
+  sort = "recent",
   page = 1,
   limit = 40,
-}: { tab?: "qs" | "hearings"; q?: string; house?: string; page?: number; limit?: number } = {}) {
-  const types = tab === "hearings" ? HEARING_TYPES : QS_TYPES;
+}: {
+  tab?: "qs" | "hearings" | "";
+  q?: string;
+  house?: string;
+  sort?: "recent" | "most-speeches";
+  page?: number;
+  limit?: number;
+} = {}) {
+  const types = tab === "hearings" ? HEARING_TYPES : tab === "" ? ALL_TYPES : QS_TYPES;
   const offset = (page - 1) * limit;
   const searchFilter = q ? db`AND t.title ILIKE ${`%${q}%`}` : db``;
   const houseFilter = house ? db`AND s.house = ${house}` : db``;
+  const orderBy =
+    sort === "most-speeches" ? db`ORDER BY t.speech_count DESC` : db`ORDER BY s.date DESC`;
   return db`
     SELECT t.id, t.title, t.section_type, t.speech_count,
            s.date, s.house,
@@ -32,7 +44,7 @@ export async function listTopics({
     ${searchFilter}
     ${houseFilter}
     GROUP BY t.id, s.date, s.house
-    ORDER BY s.date DESC
+    ${orderBy}
     LIMIT ${limit + 1} OFFSET ${offset}
   `;
 }
@@ -41,8 +53,8 @@ export async function countTopics({
   tab = "qs",
   q,
   house,
-}: { tab?: "qs" | "hearings"; q?: string; house?: string } = {}) {
-  const types = tab === "hearings" ? HEARING_TYPES : QS_TYPES;
+}: { tab?: "qs" | "hearings" | ""; q?: string; house?: string } = {}) {
+  const types = tab === "hearings" ? HEARING_TYPES : tab === "" ? ALL_TYPES : QS_TYPES;
   const searchFilter = q ? db`AND t.title ILIKE ${`%${q}%`}` : db``;
   const houseFilter = house ? db`AND s.house = ${house}` : db``;
   const [r] = await db`

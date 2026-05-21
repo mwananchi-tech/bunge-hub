@@ -1,5 +1,7 @@
-import { Form, Link } from "react-router";
+import { useState } from "react";
+import { Link } from "react-router";
 
+import { FilterButton, FilterPanel } from "~/components/FilterPanel";
 import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
 import { fromParam } from "~/lib/navigation";
@@ -11,12 +13,13 @@ const LIMIT = 40;
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const tab = (url.searchParams.get("tab") ?? "qs") as "qs" | "hearings";
+  const tab = (url.searchParams.get("tab") ?? "") as "qs" | "hearings" | "";
   const q = url.searchParams.get("q") ?? undefined;
   const house = url.searchParams.get("house") ?? undefined;
+  const sort = (url.searchParams.get("sort") ?? "recent") as "recent" | "most-speeches";
   const page = Number(url.searchParams.get("page") ?? 1);
   const [rows, total] = await Promise.all([
-    listTopics({ tab, q, house, page, limit: LIMIT }),
+    listTopics({ tab, q, house, sort, page, limit: LIMIT }),
     countTopics({ tab, q, house }),
   ]);
   const hasMore = rows.length > LIMIT;
@@ -26,6 +29,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     tab,
     q,
     house,
+    sort,
     page,
     hasMore,
     totalPages,
@@ -38,7 +42,9 @@ export function meta() {
 }
 
 export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
-  const { topics, tab, q, house, page, hasMore, totalPages, searchStr } = loaderData;
+  const { topics, tab, q, house, sort, page, hasMore, totalPages, searchStr } = loaderData;
+  const activeFilterCount = [house, tab !== "" ? "active" : ""].filter(Boolean).length;
+  const [showFilters, setShowFilters] = useState(false);
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
@@ -52,39 +58,56 @@ export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
       <PageToolbar
         q={q}
         searchPlaceholder="Search topics…"
-        hiddenParams={{ tab, house }}
-        filterGroups={[
+        hiddenParams={{ ...(tab ? { tab } : {}), ...(house ? { house } : {}) }}
+        filterGroups={[]}
+        sort={{
+          paramName: "sort",
+          current: sort,
+          options: [
+            { value: "recent", label: "Most recent" },
+            { value: "most-speeches", label: "Most speeches" },
+          ],
+        }}
+        extraActions={
+          <FilterButton activeCount={activeFilterCount} onClick={() => setShowFilters((v) => !v)} />
+        }
+      />
+
+      <FilterPanel
+        isOpen={showFilters}
+        clearUrl={`?${new URLSearchParams({ ...(sort !== "recent" ? { sort } : {}), ...(q ? { q } : {}) })}`}
+        groups={[
           {
+            label: "Type",
             paramName: "tab",
             current: tab,
-            pills: [
+            options: [
+              { value: "", label: "All" },
               { value: "qs", label: "Questions & Statements" },
               { value: "hearings", label: "Hearings" },
             ],
-            preserveParams: { q, house },
+            preserveParams: {
+              ...(sort !== "recent" ? { sort } : {}),
+              ...(q ? { q } : {}),
+              ...(house ? { house } : {}),
+            },
+          },
+          {
+            label: "House",
+            paramName: "house",
+            current: house ?? "",
+            options: [
+              { value: "", label: "Both" },
+              { value: "National Assembly", label: "National Assembly" },
+              { value: "Senate", label: "Senate" },
+            ],
+            preserveParams: {
+              ...(tab ? { tab } : {}),
+              ...(sort !== "recent" ? { sort } : {}),
+              ...(q ? { q } : {}),
+            },
           },
         ]}
-        extraActions={
-          <Form method="get">
-            {q && <input type="hidden" name="q" value={q} />}
-            {tab && <input type="hidden" name="tab" value={tab} />}
-            <select
-              name="house"
-              defaultValue={house ?? ""}
-              onChange={(e) => e.currentTarget.form?.requestSubmit()}
-              className="px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
-              style={{
-                border: "1px solid var(--color-border)",
-                backgroundColor: "var(--color-surface)",
-                color: house ? "var(--color-text)" : "var(--color-muted)",
-              }}
-            >
-              <option value="">All houses</option>
-              <option value="National Assembly">National Assembly</option>
-              <option value="Senate">Senate</option>
-            </select>
-          </Form>
-        }
       />
 
       {topics.length === 0 ? (

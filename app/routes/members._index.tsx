@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Form, Link } from "react-router";
 
+import { FilterButton, FilterPanel } from "~/components/FilterPanel";
 import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
 import { fromParam } from "~/lib/navigation";
@@ -98,137 +99,50 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
         filterGroups={[]}
         sort={{ current: sort, options: SORT_OPTIONS, paramName: "sort" }}
         extraActions={
-          <button
-            type="button"
-            onClick={() => setShowFilters((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded shrink-0 cursor-pointer"
-            style={{
-              border: "1px solid var(--color-border)",
-              backgroundColor:
-                activeFilterCount > 0 ? "var(--color-accent)" : "var(--color-surface)",
-              color: activeFilterCount > 0 ? "white" : "var(--color-text)",
-            }}
-          >
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M7 12h10M11 20h2" />
-            </svg>
-            Filters
-            {activeFilterCount > 0 && (
-              <span className="text-xs font-semibold">{activeFilterCount}</span>
-            )}
-          </button>
+          <FilterButton activeCount={activeFilterCount} onClick={() => setShowFilters((v) => !v)} />
         }
       />
 
-      {showFilters && (
-        <div
-          className="mb-6 p-4 rounded-lg space-y-4"
-          style={{
-            backgroundColor: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-          }}
-        >
-          {activeFilterCount > 0 && (
-            <div className="flex justify-end">
-              <Link
-                to={`?${new URLSearchParams({ sort, ...(q ? { q } : {}) })}`}
-                className="text-xs px-2.5 py-1 rounded hover:underline"
-                style={{ border: "1px solid var(--color-border)", color: "var(--color-text)" }}
-              >
-                Clear all filters
-              </Link>
-            </div>
-          )}
-
-          {/* House filter */}
-          <div>
-            <div
-              className="text-xs font-medium uppercase tracking-widest mb-2"
-              style={{ color: "var(--color-muted)" }}
-            >
-              House
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {[
-                { value: "", label: "Both" },
-                { value: "National Assembly", label: "National Assembly" },
-                { value: "Senate", label: "Senate" },
-              ].map((h) => {
-                const active = (house ?? "") === h.value;
-                const params = new URLSearchParams({
-                  sort,
-                  ...(q ? { q } : {}),
-                  ...(memberType ? { type: memberType } : {}),
-                  ...(committee ? { committee } : {}),
-                  ...(h.value ? { house: h.value } : {}),
-                });
-                return (
-                  <Link
-                    key={h.value}
-                    to={`?${params}`}
-                    className="px-3 py-1.5 text-sm rounded"
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      backgroundColor: active ? "var(--color-accent)" : "var(--color-bg)",
-                      color: active ? "white" : "var(--color-text)",
-                    }}
-                  >
-                    {h.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Member type filter */}
-          <div>
-            <div
-              className="text-xs font-medium uppercase tracking-widest mb-2"
-              style={{ color: "var(--color-muted)" }}
-            >
-              Type
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {[
-                { value: "", label: "All" },
-                { value: "elected", label: "Elected" },
-                { value: "nominated", label: "Nominated" },
-                { value: "woman-rep", label: "Woman Rep (NA)" },
-              ].map((t) => {
-                const active = (memberType ?? "") === t.value;
-                const params = new URLSearchParams({
-                  sort,
-                  ...(q ? { q } : {}),
-                  ...(house ? { house } : {}),
-                  ...(committee ? { committee } : {}),
-                  ...(t.value ? { type: t.value } : {}),
-                });
-                return (
-                  <Link
-                    key={t.value}
-                    to={`?${params}`}
-                    className="px-3 py-1.5 text-sm rounded"
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      backgroundColor: active ? "var(--color-accent)" : "var(--color-bg)",
-                      color: active ? "white" : "var(--color-text)",
-                    }}
-                  >
-                    {t.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Committee filter */}
-          {committees.length > 0 && (
+      <FilterPanel
+        isOpen={showFilters}
+        clearUrl={`?${new URLSearchParams({ sort, ...(q ? { q } : {}) })}`}
+        groups={[
+          {
+            label: "House",
+            paramName: "house",
+            current: house ?? "",
+            options: [
+              { value: "", label: "Both" },
+              { value: "National Assembly", label: "National Assembly" },
+              { value: "Senate", label: "Senate" },
+            ],
+            preserveParams: {
+              sort,
+              ...(q ? { q } : {}),
+              ...(memberType ? { type: memberType } : {}),
+              ...(committee ? { committee } : {}),
+            },
+          },
+          {
+            label: "Type",
+            paramName: "type",
+            current: memberType ?? "",
+            options: [
+              { value: "", label: "All" },
+              { value: "elected", label: "Elected" },
+              { value: "nominated", label: "Nominated" },
+              { value: "woman-rep", label: "Woman Rep (NA)" },
+            ],
+            preserveParams: {
+              sort,
+              ...(q ? { q } : {}),
+              ...(house ? { house } : {}),
+              ...(committee ? { committee } : {}),
+            },
+          },
+        ]}
+        extra={
+          committees.length > 0 ? (
             <div>
               <div
                 className="text-xs font-medium uppercase tracking-widest mb-2"
@@ -275,9 +189,9 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
                 </div>
               </Form>
             </div>
-          )}
-        </div>
-      )}
+          ) : null
+        }
+      />
 
       {members.length === 0 ? (
         <p style={{ color: "var(--color-muted)" }}>No members found.</p>
