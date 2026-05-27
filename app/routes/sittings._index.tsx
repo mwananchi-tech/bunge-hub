@@ -8,6 +8,20 @@ import type { Route } from "./+types/sittings._index";
 const LIMIT = 40;
 const YEARS = [2026, 2025, 2024, 2023, 2022];
 
+type PreviewItem = { id: string | number; name?: string; title?: string };
+type SittingListItem = {
+  url: string;
+  date: string | Date;
+  house: string;
+  sessionType: string;
+  summary?: string;
+  pdfUrl?: string;
+  billPreviews: PreviewItem[];
+  billPreviewTotal: number;
+  topicPreviews: PreviewItem[];
+  topicPreviewTotal: number;
+};
+
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const house = url.searchParams.get("house") ?? undefined;
@@ -65,6 +79,43 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
     if (house) p.set("house", house);
     if (y) p.set("year", String(y));
     return `?${p}`;
+  }
+  function previewLabel(item: PreviewItem) {
+    return item.name ?? item.title ?? String(item.id);
+  }
+
+  function PreviewLinks({
+    title,
+    items,
+    total,
+    basePath,
+  }: {
+    title: string;
+    items: PreviewItem[];
+    total: number;
+    basePath: string;
+  }) {
+    if (!items.length) return null;
+    const extra = Math.max(total - items.length, 0);
+
+    return (
+      <div className="flex flex-wrap items-center gap-1.5 text-xs">
+        <span className="font-medium" style={{ color: "var(--color-muted)" }}>
+          {title}:
+        </span>
+        {items.map((item) => (
+          <Link
+            key={`${basePath}-${item.id}`}
+            to={`/${basePath}/${item.id}`}
+            className="px-2 py-0.5 rounded"
+            style={{ backgroundColor: "var(--color-surface)", color: "var(--color-text)" }}
+          >
+            {previewLabel(item)}
+          </Link>
+        ))}
+        {extra > 0 && <span style={{ color: "var(--color-muted)" }}>+{extra} more</span>}
+      </div>
+    );
   }
 
   return (
@@ -145,7 +196,7 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
             No sittings found.
           </p>
         )}
-        {sittings.map((s: any) => (
+        {(sittings as SittingListItem[]).map((s) => (
           <div key={s.url} className="py-5 flex items-start gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
@@ -176,6 +227,22 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
                 >
                   {s.summary}
                 </p>
+              )}
+              {(s.billPreviews.length > 0 || s.topicPreviews.length > 0) && (
+                <div className="mt-3 space-y-1.5">
+                  <PreviewLinks
+                    title="Bills"
+                    items={s.billPreviews}
+                    total={s.billPreviewTotal}
+                    basePath="bills"
+                  />
+                  <PreviewLinks
+                    title="Topics"
+                    items={s.topicPreviews}
+                    total={s.topicPreviewTotal}
+                    basePath="topics"
+                  />
+                </div>
               )}
               <div className="flex items-center gap-3 mt-2">
                 <Link
