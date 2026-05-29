@@ -28,7 +28,7 @@ export async function listSittings({
       SELECT count(*)::int AS total,
              coalesce(
                json_agg(json_build_object('id', id, 'name', name) ORDER BY date DESC, name)
-                 FILTER (WHERE rn <= 5),
+                 FILTER (WHERE rn <= 10),
                '[]'::json
              ) AS items
       FROM (
@@ -44,7 +44,7 @@ export async function listSittings({
       SELECT count(*)::int AS total,
              coalesce(
                json_agg(json_build_object('id', id, 'title', title) ORDER BY speech_count DESC, title)
-                 FILTER (WHERE rn <= 5),
+                 FILTER (WHERE rn <= 10),
                '[]'::json
              ) AS items
       FROM (

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Form, Link } from "react-router";
 
 import { Pagination } from "~/components/Pagination";
@@ -95,15 +96,20 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
     total: number;
     basePath: string;
   }) {
+    const [shownCount, setShownCount] = useState(5);
     if (!items.length) return null;
-    const extra = Math.max(total - items.length, 0);
+
+    const visibleItems = items.slice(0, shownCount);
+    const revealableCount = Math.max(items.length - visibleItems.length, 0);
+    const remainingTotal = Math.max(total - visibleItems.length, 0);
+    const revealCount = Math.min(5, revealableCount);
 
     return (
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
         <span className="font-medium" style={{ color: "var(--color-muted)" }}>
           {title}:
         </span>
-        {items.map((item) => (
+        {visibleItems.map((item) => (
           <Link
             key={`${basePath}-${item.id}`}
             to={`/${basePath}/${item.id}`}
@@ -113,7 +119,18 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
             {previewLabel(item)}
           </Link>
         ))}
-        {extra > 0 && <span style={{ color: "var(--color-muted)" }}>+{extra} more</span>}
+        {revealCount > 0 ? (
+          <button
+            type="button"
+            className="px-2 py-0.5 rounded"
+            style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}
+            onClick={() => setShownCount((count) => count + 5)}
+          >
+            +{revealCount} more
+          </button>
+        ) : remainingTotal > 0 ? (
+          <span style={{ color: "var(--color-muted)" }}>+{remainingTotal} more</span>
+        ) : null}
       </div>
     );
   }
