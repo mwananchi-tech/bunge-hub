@@ -15,15 +15,50 @@ export async function listSittings({
   limit = 40,
 }: { house?: string; year?: number; page?: number; limit?: number } = {}) {
   const offset = (page - 1) * limit;
-  const houseFilter = house ? db`AND house = ${house}` : db``;
-  const yearFilter = year ? db`AND EXTRACT(YEAR FROM date) = ${year}` : db``;
+  const houseFilter = house ? db`AND s.house = ${house}` : db``;
+  const yearFilter = year ? db`AND EXTRACT(YEAR FROM s.date) = ${year}` : db``;
   return db`
-    SELECT url, date, house, session_type, summary, pdf_url
-    FROM sittings
+    SELECT s.url, s.date, s.house, s.session_type, s.summary, s.pdf_url,
+           coalesce(bill_previews.items, '[]'::json) AS bill_previews,
+           coalesce(bill_previews.total, 0)::int AS bill_preview_total,
+           coalesce(topic_previews.items, '[]'::json) AS topic_previews,
+           coalesce(topic_previews.total, 0)::int AS topic_preview_total
+    FROM sittings s
+    LEFT JOIN LATERAL (
+      SELECT count(*)::int AS total,
+             coalesce(
+               json_agg(json_build_object('id', id, 'name', name) ORDER BY date DESC, name)
+                 FILTER (WHERE rn <= 10),
+               '[]'::json
+             ) AS items
+      FROM (
+        SELECT b.id, b.name, max(bm.date) AS date,
+               row_number() OVER (ORDER BY max(bm.date) DESC, b.name) AS rn
+        FROM bill_mentions bm
+        JOIN bills b ON b.id = bm.bill_id
+        WHERE bm.sitting_id = s.id
+        GROUP BY b.id, b.name
+      ) bills_for_sitting
+    ) bill_previews ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT count(*)::int AS total,
+             coalesce(
+               json_agg(json_build_object('id', id, 'title', title) ORDER BY speech_count DESC, title)
+                 FILTER (WHERE rn <= 10),
+               '[]'::json
+             ) AS items
+      FROM (
+        SELECT t.id, t.title, t.speech_count,
+               row_number() OVER (ORDER BY t.speech_count DESC, t.title) AS rn
+        FROM topics t
+        WHERE t.sitting_id = s.id
+        ORDER BY t.speech_count DESC, t.title
+      ) topics_for_sitting
+    ) topic_previews ON TRUE
     WHERE TRUE
     ${houseFilter}
     ${yearFilter}
-    ORDER BY date DESC
+    ORDER BY s.date DESC
     LIMIT ${limit + 1} OFFSET ${offset}
   `;
 }
