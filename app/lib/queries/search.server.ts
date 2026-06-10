@@ -21,7 +21,7 @@ export async function search(query: string, limit = 20): Promise<SearchResult[]>
   // All three branches produce the same column shape so ORDER BY score DESC applies
   // uniformly across types. Requires pg_trgm extension for member matching.
   return db<SearchResult[]>`
-    SELECT * FROM (
+    WITH results AS (
       SELECT 'member'::text                                                  AS type,
              m.id::text                                                      AS id,
              m.name                                                          AS title,
@@ -40,7 +40,7 @@ export async function search(query: string, limit = 20): Promise<SearchResult[]>
 
       UNION ALL
 
-      SELECT 'bill',
+      SELECT 'bill'::text,
              b.id::text,
              b.name,
              coalesce(b.bill_number, '') || coalesce(' · ' || b.year::text, ''),
@@ -63,7 +63,8 @@ export async function search(query: string, limit = 20): Promise<SearchResult[]>
       JOIN sittings s ON s.id = t.sitting_id
       WHERE to_tsvector('english', t.title) @@ websearch_to_tsquery('english', ${query})
          OR t.title ILIKE ${"%" + query + "%"}
-    ) results
+    )
+    SELECT * FROM results
     ORDER BY score DESC
     LIMIT ${limit}
   `;
