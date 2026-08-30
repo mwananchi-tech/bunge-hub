@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import { InfoTooltip } from "~/components/InfoTooltip";
 import { MemberAvatar } from "~/components/MemberAvatar";
+import { formatMemberName } from "~/lib/member-name";
 import {
   getHomeStats,
   getRecentSittings,
@@ -247,7 +248,7 @@ function MemberList({ members }: { members: any[] }) {
             {i + 1}
           </span>
           <MemberAvatar
-            name={m.name}
+            name={formatMemberName(m.name)}
             src={m.photoUrl}
             className="w-8 h-8 rounded-full object-cover shrink-0"
             fallbackClassName="font-serif text-xs"
@@ -259,7 +260,7 @@ function MemberList({ members }: { members: any[] }) {
               className="text-sm font-medium hover:underline truncate block"
               style={{ color: "var(--color-accent)" }}
             >
-              {m.name}
+              {formatMemberName(m.name)}
             </Link>
             <span className="text-xs" style={{ color: "var(--color-muted)" }}>
               {Number(m.speeches).toLocaleString()} speeches

@@ -6,7 +6,7 @@ import { MemberAvatar } from "~/components/MemberAvatar";
 import { ModelBadge } from "~/components/ModelBadge";
 import {
   getSittingById,
-  getSpeakerSlugs,
+  getSpeakerMembers,
   resolveLegacySittingSuffix,
 } from "~/lib/queries/sittings.server";
 import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
@@ -28,7 +28,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   const sitting = await getSittingById(routeParam);
   if (!sitting) throw data("Sitting not found", { status: 404 });
   if (routeParam !== sitting.id) throw redirect(`/sittings/${sitting.id}`, 308);
-  const speakerMap = await getSpeakerSlugs(sitting.id);
+  const speakerMap = await getSpeakerMembers(sitting.id);
   return { sitting, speakerMap };
 }
 
@@ -280,7 +280,9 @@ function ContributionList({
 
 function Contribution({ c, speakerMap }: { c: any; speakerMap: Record<string, any> }) {
   const [expanded, setExpanded] = useState(false);
-  const member = c.speakerUrl ? speakerMap[c.speakerUrl] : null;
+  const member =
+    (c.speakerUrl ? speakerMap[`url:${c.speakerUrl}`] : null) ??
+    speakerMap[`name:${c.speakerName}`];
   const content = c.content ?? "";
   const truncLimit = 400;
   const needsTrunc = content.length > truncLimit;

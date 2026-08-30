@@ -108,10 +108,19 @@ export async function resolveLegacySittingSuffix(suffix: string) {
   return rows.map((row) => row.id);
 }
 
-// Returns speaker URL to canonical member identity mapping for active speakers.
-export async function getSpeakerSlugs(sittingId: string) {
-  const rows = await db`
-    SELECT sp.url AS speaker_url, m.id AS member_id,
+// Returns transcript speaker identifiers mapped to canonical member identities.
+export async function getSpeakerMembers(sittingId: string) {
+  const rows = await db<
+    {
+      speakerUrl: string | null;
+      speakerName: string;
+      memberId: string;
+      memberName: string;
+      memberPhoto: string | null;
+      memberParty: string | null;
+    }[]
+  >`
+    SELECT sp.url AS speaker_url, sp.name AS speaker_name, m.id AS member_id,
            m.name AS member_name, m.photo_url AS member_photo,
            m.party AS member_party
     FROM sitting_speakers ss
@@ -119,17 +128,19 @@ export async function getSpeakerSlugs(sittingId: string) {
     JOIN members m ON m.id = sp.member_id
     WHERE ss.sitting_id = ${sittingId}
       AND ss.active
-      AND sp.url IS NOT NULL
   `;
   return Object.fromEntries(
-    rows.map((r: any) => [
-      r.speakerUrl,
-      {
+    rows.flatMap((r) => {
+      const member = {
         id: r.memberId,
         name: r.memberName,
         photo: r.memberPhoto,
         party: r.memberParty,
-      },
-    ])
+      };
+      return [
+        [`name:${r.speakerName}`, member],
+        ...(r.speakerUrl ? [[`url:${r.speakerUrl}`, member] as const] : []),
+      ];
+    })
   );
 }
