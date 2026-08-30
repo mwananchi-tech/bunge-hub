@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 
 import { CommandPalette } from "./CommandPalette";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_LINKS = [
   { to: "/members", label: "Members" },
@@ -80,6 +81,8 @@ export function Nav() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
+
             <button
               onClick={() => setSearchOpen(true)}
               className="flex items-center gap-2 px-3 py-1.5 rounded text-sm"
