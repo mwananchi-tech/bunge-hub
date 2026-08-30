@@ -3,6 +3,7 @@ import { Link, data, redirect } from "react-router";
 import { InfoTooltip } from "~/components/InfoTooltip";
 import { MemberAvatar } from "~/components/MemberAvatar";
 import { Pagination } from "~/components/Pagination";
+import { formatMemberName } from "~/lib/member-name";
 import { getFromParam } from "~/lib/navigation";
 import {
   getMemberBillCount,
@@ -106,7 +107,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 export function meta({ data }: Route.MetaArgs) {
   const m = data?.member;
-  const name = m?.name ?? "Member";
+  const name = m ? formatMemberName(m.name) : "Member";
   const details = [m?.party, m?.constituency, m?.house].filter(Boolean).join(", ");
   const description = `Parliamentary profile for ${name}${details ? ` (${details})` : ""}. Speeches, bills sponsored, and committee memberships in Kenya's 13th Parliament.`;
   return [
@@ -141,6 +142,7 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
 
   const positions: string[] = m.positions ?? [];
   const committees: string[] = m.committees ?? [];
+  const displayName = formatMemberName(m.name);
   const primaryPosition =
     positions.find((p) => !p.startsWith("A member of the"))?.replace(/^Elected to be /, "") ?? null;
   const externalUrl = m.sourceUrl ? resolveSourceUrl(m.sourceUrl, m.sourceBaseUrl) : null;
@@ -152,20 +154,20 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
           Members
         </Link>
         {" / "}
-        <span>{m.name}</span>
+        <span>{displayName}</span>
       </div>
 
       {/* Header */}
       <div className="flex gap-6 mb-10">
         <MemberAvatar
-          name={m.name}
+          name={displayName}
           src={m.photoUrl}
           className="w-24 h-24 rounded-full object-cover shrink-0"
           fallbackClassName="font-serif text-3xl"
           style={{ border: "2px solid var(--color-border)" }}
         />
         <div className="min-w-0">
-          <h1 className="font-serif text-3xl mb-1">{m.name}</h1>
+          <h1 className="font-serif text-3xl mb-1">{displayName}</h1>
           <div className="flex flex-wrap items-center gap-2 text-sm mb-2">
             {m.party && (
               <span

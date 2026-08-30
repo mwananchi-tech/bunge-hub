@@ -5,6 +5,7 @@ import { FilterButton, FilterPanel } from "~/components/FilterPanel";
 import { MemberAvatar } from "~/components/MemberAvatar";
 import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
+import { formatMemberName } from "~/lib/member-name";
 import { fromParam } from "~/lib/navigation";
 import {
   type MemberSort,
@@ -207,51 +208,60 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
         <p style={{ color: "var(--color-muted)" }}>No members found.</p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {members.map((m: any) => (
-            <Link
-              key={m.id}
-              to={`/members/${m.id}${fromParam("/members", searchStr)}`}
-              className="flex items-center gap-3 p-4 rounded-lg border transition-all"
-              style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--color-surface)";
-                e.currentTarget.style.borderColor = "var(--color-accent)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--color-bg)";
-                e.currentTarget.style.borderColor = "var(--color-border)";
-              }}
-            >
-              <MemberAvatar
-                name={m.name}
-                src={m.photoUrl}
-                className="w-11 h-11 rounded-full object-cover shrink-0"
-                style={{ border: "1px solid var(--color-border)" }}
-                fallbackStyle={{ fontSize: "1.1rem" }}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="font-medium text-sm truncate">{m.name}</span>
-                  {speakerBadge(m.role, m.constituency)}
-                </div>
-                <div className="text-xs mt-0.5 flex items-center justify-between gap-2">
-                  <span className="truncate" style={{ color: "var(--color-muted)" }}>
-                    {m.party ?? m.house}
-                  </span>
-                  {(sort === "most-active" || sort === "least-active") && (
-                    <span className="shrink-0 tabular-nums" style={{ color: "var(--color-muted)" }}>
-                      {Number(m.totalSpeeches).toLocaleString()} sp.
+          {members.map((m: any) => {
+            const displayName = formatMemberName(m.name);
+            return (
+              <Link
+                key={m.id}
+                to={`/members/${m.id}${fromParam("/members", searchStr)}`}
+                className="flex items-center gap-3 p-4 rounded-lg border transition-all"
+                style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "var(--color-surface)";
+                  e.currentTarget.style.borderColor = "var(--color-accent)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "var(--color-bg)";
+                  e.currentTarget.style.borderColor = "var(--color-border)";
+                }}
+              >
+                <MemberAvatar
+                  name={displayName}
+                  src={m.photoUrl}
+                  className="w-11 h-11 rounded-full object-cover shrink-0"
+                  style={{ border: "1px solid var(--color-border)" }}
+                  fallbackStyle={{ fontSize: "1.1rem" }}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-medium text-sm truncate">{displayName}</span>
+                    {speakerBadge(m.role, m.constituency)}
+                  </div>
+                  <div className="text-xs mt-0.5 flex items-center justify-between gap-2">
+                    <span className="truncate" style={{ color: "var(--color-muted)" }}>
+                      {m.party ?? m.house}
                     </span>
-                  )}
-                  {sort === "most-sponsored" && (
-                    <span className="shrink-0 tabular-nums" style={{ color: "var(--color-muted)" }}>
-                      {Number(m.billsSponsored)} bills
-                    </span>
-                  )}
+                    {(sort === "most-active" || sort === "least-active") && (
+                      <span
+                        className="shrink-0 tabular-nums"
+                        style={{ color: "var(--color-muted)" }}
+                      >
+                        {Number(m.totalSpeeches).toLocaleString()} sp.
+                      </span>
+                    )}
+                    {sort === "most-sponsored" && (
+                      <span
+                        className="shrink-0 tabular-nums"
+                        style={{ color: "var(--color-muted)" }}
+                      >
+                        {Number(m.billsSponsored)} bills
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
 
