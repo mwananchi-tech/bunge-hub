@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { type MouseEvent, useCallback, useState } from "react";
 import { Link, data } from "react-router";
 
 import {
@@ -14,9 +14,16 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { MarkdownContent } from "~/components/MarkdownContent";
+import { MemberAvatar } from "~/components/MemberAvatar";
 import { ModelBadge } from "~/components/ModelBadge";
 import { getFromParam } from "~/lib/navigation";
-import { getBill, getBillJourney } from "~/lib/queries/bills.server";
+import {
+  type BillJourneyItem,
+  type BillJourneySpeaker,
+  getBill,
+  getBillJourney,
+} from "~/lib/queries/bills.server";
+import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
 
 import type { Route } from "./+types/bills.$id";
 
@@ -66,8 +73,11 @@ function SparkleIcon() {
   );
 }
 
-function BillStageNode({ data: d }: NodeProps) {
-  const color = STAGE_COLORS[d.stage] ?? "var(--color-muted)";
+type BillNodeData = BillJourneyItem & { isSelected?: boolean };
+type BillNode = Node<BillNodeData, "billNode">;
+
+function BillStageNode({ data: d }: NodeProps<BillNode>) {
+  const color = STAGE_COLORS[d.stage ?? ""] ?? "var(--color-muted)";
   const isSelected = !!d.isSelected;
   return (
     <div
@@ -127,8 +137,8 @@ function BillStageNode({ data: d }: NodeProps) {
 
 const NODE_TYPES = { billNode: BillStageNode };
 
-function buildFlow(journey: any[]): { nodes: Node[]; edges: Edge[] } {
-  const nodes: Node[] = journey.map((j, i) => ({
+function buildFlow(journey: BillJourneyItem[]): { nodes: BillNode[]; edges: Edge[] } {
+  const nodes: BillNode[] = journey.map((j, i) => ({
     id: j.id,
     type: "billNode",
     position: { x: i * 240, y: 0 },
@@ -147,7 +157,7 @@ function buildFlow(journey: any[]): { nodes: Node[]; edges: Edge[] } {
 
 export default function BillDetail({ loaderData }: Route.ComponentProps) {
   const { bill, journey, from } = loaderData;
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<BillJourneyItem | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [shownCount, setShownCount] = useState(8);
   const [expandedSpeaker, setExpandedSpeaker] = useState<number | null>(null);
@@ -159,8 +169,8 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
 
   const BATCH = 8;
 
-  const onNodeClick = useCallback((_: any, node: Node) => {
-    setSelected((s: any) => {
+  const onNodeClick = useCallback((_: MouseEvent, node: BillNode) => {
+    setSelected((s) => {
       const next = s?.id === node.id ? null : node.data;
       setSelectedId(next ? node.id : null);
       setShownCount(BATCH);
@@ -170,14 +180,9 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
   }, []);
 
   const sittingHref = selected?.sittingUrl
-    ? selected.sittingUrl.startsWith("http")
-      ? selected.sittingUrl
-      : `https://mzalendo.com${selected.sittingUrl}`
+    ? resolveSourceUrl(selected.sittingUrl, selected.sittingSourceBaseUrl)
     : null;
 
-  const transcriptSlug = selected?.sittingUrl
-    ? (selected.sittingUrl.split("/").filter(Boolean).pop() ?? "")
-    : "";
   const transcriptAnchor = selected?.sectionTitle
     ? selected.sectionTitle
         .toLowerCase()
@@ -185,10 +190,10 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
         .replace(/^-|-$/g, "")
     : "";
   const transcriptUrl =
-    transcriptSlug && transcriptAnchor
-      ? `/sittings/${transcriptSlug}#${transcriptAnchor}`
-      : transcriptSlug
-        ? `/sittings/${transcriptSlug}`
+    selected?.sittingId && transcriptAnchor
+      ? `/sittings/${selected.sittingId}#${transcriptAnchor}`
+      : selected?.sittingId
+        ? `/sittings/${selected.sittingId}`
         : null;
 
   return (
@@ -208,9 +213,9 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
           {bill.sponsor && (
             <span>
               Moved by:{" "}
-              {bill.sponsorSlug ? (
+              {bill.sponsorId ? (
                 <Link
-                  to={`/members/${bill.sponsorSlug}`}
+                  to={`/members/${bill.sponsorId}`}
                   className="hover:underline"
                   style={{ color: "var(--color-accent)" }}
                 >
@@ -319,7 +324,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                 <div>
                   <div
                     className="text-xs font-semibold uppercase tracking-widest mb-1"
-                    style={{ color: STAGE_COLORS[selected.stage] ?? "var(--color-muted)" }}
+                    style={{ color: STAGE_COLORS[selected.stage ?? ""] ?? "var(--color-muted)" }}
                   >
                     {selected.stage ?? "Debate"}
                   </div>
@@ -357,7 +362,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                         backgroundColor: "var(--color-bg)",
                       }}
                     >
-                      mzalendo.com ↗
+                      {sourceHost(sittingHref)} ↗
                     </a>
                   )}
                   <button
@@ -406,7 +411,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                     Contributors
                   </div>
                   <div className="space-y-1">
-                    {(selected.speakers ?? []).slice(0, shownCount).map((s: any, i: number) => (
+                    {selected.speakers.slice(0, shownCount).map((s: BillJourneySpeaker, i) => (
                       <div key={i}>
                         <div
                           className="flex items-center gap-2.5 py-1.5"
@@ -415,31 +420,18 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                             s.summary && setExpandedSpeaker(expandedSpeaker === i ? null : i)
                           }
                         >
-                          {s.photo ? (
-                            <img
-                              loading="lazy"
-                              decoding="async"
-                              src={s.photo}
-                              alt={s.name}
-                              className="w-8 h-8 rounded-full object-cover shrink-0"
-                              style={{ border: "1px solid var(--color-border)" }}
-                            />
-                          ) : (
-                            <div
-                              className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-serif"
-                              style={{
-                                backgroundColor: "var(--color-bg)",
-                                color: "var(--color-muted)",
-                                border: "1px solid var(--color-border)",
-                              }}
-                            >
-                              {s.name?.[0]}
-                            </div>
-                          )}
+                          <MemberAvatar
+                            name={s.name ?? "Unknown speaker"}
+                            src={s.photo}
+                            className="w-8 h-8 rounded-full object-cover shrink-0"
+                            fallbackClassName="font-serif text-xs"
+                            style={{ border: "1px solid var(--color-border)" }}
+                            fallbackStyle={{ backgroundColor: "var(--color-bg)" }}
+                          />
                           <div className="flex-1 min-w-0">
-                            {s.slug ? (
+                            {s.memberId ? (
                               <Link
-                                to={`/members/${s.slug}`}
+                                to={`/members/${s.memberId}`}
                                 className="text-sm font-medium hover:underline"
                                 style={{ color: "var(--color-accent)" }}
                                 onClick={(e) => e.stopPropagation()}
@@ -495,7 +487,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                         )}
                       </div>
                     ))}
-                    {shownCount < (selected.speakers ?? []).length && (
+                    {shownCount < selected.speakers.length && (
                       <button
                         onClick={() => setShownCount((c) => c + BATCH)}
                         className="text-xs w-full py-1.5 rounded transition-colors"
@@ -507,8 +499,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
                         onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-accent)")}
                         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-muted)")}
                       >
-                        + {Math.min(BATCH, (selected.speakers ?? []).length - shownCount)} more
-                        contributors
+                        + {Math.min(BATCH, selected.speakers.length - shownCount)} more contributors
                       </button>
                     )}
                   </div>
@@ -526,11 +517,11 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
               Full journey: {journey.length} session{journey.length !== 1 ? "s" : ""}
             </div>
             <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
-              {journey.map((j: any) => (
+              {journey.map((j) => (
                 <div key={j.id} className="py-3 flex items-center gap-4">
                   <span
                     className="text-xs font-medium w-32 shrink-0"
-                    style={{ color: STAGE_COLORS[j.stage] ?? "var(--color-muted)" }}
+                    style={{ color: STAGE_COLORS[j.stage ?? ""] ?? "var(--color-muted)" }}
                   >
                     {j.stage ?? "Debate"}
                   </span>

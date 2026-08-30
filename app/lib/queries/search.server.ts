@@ -26,7 +26,7 @@ export async function search(query: string, limit = 20): Promise<SearchResult[]>
              m.id::text                                                      AS id,
              m.name                                                          AS title,
              coalesce(m.party, '') || ' · ' || coalesce(m.constituency, '') AS subtitle,
-             '/members/' || m.slug                                           AS url_path,
+             '/members/' || m.id::text                                       AS url_path,
              greatest(
                word_similarity(${query}, m.name),
                similarity(${query}, m.name),
@@ -61,8 +61,9 @@ export async function search(query: string, limit = 20): Promise<SearchResult[]>
              ts_rank(to_tsvector('english', t.title), websearch_to_tsquery('english', ${query}))::float
       FROM topics t
       JOIN sittings s ON s.id = t.sitting_id
-      WHERE to_tsvector('english', t.title) @@ websearch_to_tsquery('english', ${query})
-         OR t.title ILIKE ${"%" + query + "%"}
+      WHERE t.active
+        AND (to_tsvector('english', t.title) @@ websearch_to_tsquery('english', ${query})
+         OR t.title ILIKE ${"%" + query + "%"})
     )
     SELECT * FROM results
     ORDER BY score DESC

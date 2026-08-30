@@ -7,22 +7,17 @@ const STATIC = ["/", "/bills", "/members", "/topics", "/sittings", "/about"];
 export async function loader() {
   const [bills, members, topics, sittings] = await Promise.all([
     db`SELECT id FROM bills`,
-    db`SELECT slug FROM members WHERE slug IS NOT NULL`,
-    db`SELECT id FROM topics`,
-    db`SELECT url FROM sittings`,
+    db`SELECT id FROM members`,
+    db`SELECT id FROM topics WHERE active`,
+    db`SELECT id FROM sittings`,
   ]);
 
   const urls = [
     ...STATIC.map((path) => `${BASE}${path}`),
     ...bills.map((b: any) => `${BASE}/bills/${b.id}`),
-    ...members.map((m: any) => `${BASE}/members/${m.slug}`),
+    ...members.map((m: any) => `${BASE}/members/${m.id}`),
     ...topics.map((t: any) => `${BASE}/topics/${t.id}`),
-    ...sittings
-      .map((s: any) => {
-        const slug = s.url?.split("/").filter(Boolean).pop();
-        return slug ? `${BASE}/sittings/${slug}` : null;
-      })
-      .filter(Boolean),
+    ...sittings.map((s: any) => `${BASE}/sittings/${s.id}`),
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

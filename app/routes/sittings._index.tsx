@@ -3,6 +3,7 @@ import { Form, Link } from "react-router";
 
 import { Pagination } from "~/components/Pagination";
 import { countSittings, listSittings } from "~/lib/queries/sittings.server";
+import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
 
 import type { Route } from "./+types/sittings._index";
 
@@ -11,7 +12,10 @@ const YEARS = [2026, 2025, 2024, 2023, 2022];
 
 type PreviewItem = { id: string | number; name?: string; title?: string };
 type SittingListItem = {
+  id: string;
   url: string;
+  sourceUrl: string;
+  sourceBaseUrl?: string;
   date: string | Date;
   house: string;
   sessionType: string;
@@ -69,12 +73,6 @@ const HOUSES = [
 export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
   const { sittings, house, year, page, hasMore, totalPages, searchStr } = loaderData;
 
-  function sittingSlug(url: string) {
-    return url.split("/").filter(Boolean).pop() ?? url;
-  }
-  function externalUrl(url: string) {
-    return url.startsWith("http") ? url : `https://mzalendo.com${url}`;
-  }
   function yearUrl(y: number | undefined) {
     const p = new URLSearchParams();
     if (house) p.set("house", house);
@@ -214,7 +212,7 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
           </p>
         )}
         {(sittings as SittingListItem[]).map((s) => (
-          <div key={s.url} className="py-5 flex items-start gap-4">
+          <div key={s.id} className="py-5 flex items-start gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span
@@ -263,26 +261,24 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
               )}
               <div className="flex items-center gap-3 mt-2">
                 <Link
-                  to={`/sittings/${sittingSlug(s.url)}`}
+                  to={`/sittings/${s.id}`}
                   className="text-xs px-2.5 py-1 rounded"
                   style={{ backgroundColor: "var(--color-accent)", color: "white" }}
                 >
                   View transcript
                 </Link>
                 <a
-                  href={externalUrl(s.url)}
+                  href={resolveSourceUrl(s.sourceUrl, s.sourceBaseUrl)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs px-2.5 py-1 rounded"
                   style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}
                 >
-                  mzalendo.com ↗
+                  {sourceHost(resolveSourceUrl(s.sourceUrl, s.sourceBaseUrl))} ↗
                 </a>
                 {s.pdfUrl && (
                   <a
-                    href={
-                      s.pdfUrl.startsWith("http") ? s.pdfUrl : `https://mzalendo.com${s.pdfUrl}`
-                    }
+                    href={resolveSourceUrl(s.pdfUrl, s.sourceBaseUrl ?? s.sourceUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs px-2.5 py-1 rounded"

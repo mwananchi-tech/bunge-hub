@@ -39,8 +39,9 @@ export async function listTopics({
            count(DISTINCT ts.speaker_id)::int AS speakers
     FROM topics t
     JOIN sittings s ON s.id = t.sitting_id
-    LEFT JOIN topic_speakers ts ON ts.topic_id = t.id
-    WHERE t.section_type IN (SELECT unnest(${types}::text[]))
+     LEFT JOIN topic_speakers ts ON ts.topic_id = t.id AND ts.active
+     WHERE t.section_type IN (SELECT unnest(${types}::text[]))
+     AND t.active
     ${searchFilter}
     ${houseFilter}
     GROUP BY t.id, s.date, s.house
@@ -62,6 +63,7 @@ export async function countTopics({
     FROM topics t
     JOIN sittings s ON s.id = t.sitting_id
     WHERE t.section_type IN (SELECT unnest(${types}::text[]))
+    AND t.active
     ${searchFilter}
     ${houseFilter}
   `;
@@ -70,10 +72,18 @@ export async function countTopics({
 
 export async function getTopic(id: string) {
   const [topic] = await db`
-    SELECT t.*, s.date, s.house, s.session_type, s.url AS sitting_url
+    SELECT t.*, s.id AS sitting_id, s.date, s.house, s.session_type,
+           coalesce(source.source_url, s.url) AS sitting_url
     FROM topics t
     JOIN sittings s ON s.id = t.sitting_id
-    WHERE t.id = ${id}
+    LEFT JOIN LATERAL (
+      SELECT ss.source_url
+      FROM sitting_sources ss
+      WHERE ss.sitting_id = s.id
+      ORDER BY (ss.source_url = s.url) DESC, ss.last_seen_at DESC, ss.id
+      LIMIT 1
+    ) source ON TRUE
+    WHERE t.id = ${id} AND t.active
   `;
   return topic ?? null;
 }
@@ -81,16 +91,17 @@ export async function getTopic(id: string) {
 export async function getTopicSpeakers(topicId: string) {
   return db`
     SELECT coalesce(m.name, sp.name)              AS name,
-           m.slug, m.photo_url, m.party, m.constituency,
+           m.id AS member_id, m.photo_url, m.party, m.constituency,
            sum(ts.speech_count)::int              AS speech_count,
            string_agg(ts.contributions_text, E'\n\n') AS contributions_text,
            max(ts.summary)                        AS summary,
            max(ts.summary_model)                  AS summary_model
     FROM topic_speakers ts
+    JOIN topics t ON t.id = ts.topic_id AND t.active
     JOIN speakers sp ON sp.id = ts.speaker_id
     LEFT JOIN members m ON m.id = sp.member_id
-    WHERE ts.topic_id = ${topicId}
-    GROUP BY coalesce(m.name, sp.name), m.slug, m.photo_url, m.party, m.constituency
+    WHERE ts.topic_id = ${topicId} AND ts.active
+    GROUP BY coalesce(m.name, sp.name), m.id, m.photo_url, m.party, m.constituency
     ORDER BY sum(ts.speech_count) DESC
   `;
 }
