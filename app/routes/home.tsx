@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 
 import { InfoTooltip } from "~/components/InfoTooltip";
+import { MemberAvatar } from "~/components/MemberAvatar";
 import {
   getHomeStats,
   getRecentSittings,
@@ -139,9 +140,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     {b.name}
                   </Link>
                   <div className="text-xs mt-0.5" style={{ color: "var(--color-muted)" }}>
-                    {b.sponsorSlug ? (
+                    {b.sponsorId ? (
                       <Link
-                        to={`/members/${b.sponsorSlug}`}
+                        to={`/members/${b.sponsorId}`}
                         className="hover:underline"
                         style={{ color: "var(--color-muted)" }}
                       >
@@ -211,8 +212,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         >
           {recentSittings.map((s: any) => (
             <Link
-              key={s.url}
-              to={`/sittings/${s.url.split("/").filter(Boolean).pop()}`}
+              key={s.id}
+              to={`/sittings/${s.id}`}
               className="block py-5 px-4 transition-colors"
               style={{ backgroundColor: "var(--color-bg)" }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-surface)")}
@@ -241,30 +242,20 @@ function MemberList({ members }: { members: any[] }) {
   return (
     <ol className="space-y-3">
       {members.map((m: any, i: number) => (
-        <li key={m.slug} className="flex items-center gap-3">
+        <li key={m.id} className="flex items-center gap-3">
           <span className="w-5 text-right text-sm shrink-0" style={{ color: "var(--color-muted)" }}>
             {i + 1}
           </span>
-          {m.photoUrl ? (
-            <img
-              loading="lazy"
-              decoding="async"
-              src={m.photoUrl}
-              alt={m.name}
-              className="w-8 h-8 rounded-full object-cover shrink-0"
-              style={{ border: "1px solid var(--color-border)" }}
-            />
-          ) : (
-            <div
-              className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-serif"
-              style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}
-            >
-              {m.name[0]}
-            </div>
-          )}
+          <MemberAvatar
+            name={m.name}
+            src={m.photoUrl}
+            className="w-8 h-8 rounded-full object-cover shrink-0"
+            fallbackClassName="font-serif text-xs"
+            style={{ border: "1px solid var(--color-border)" }}
+          />
           <div className="flex-1 min-w-0">
             <Link
-              to={`/members/${m.slug}`}
+              to={`/members/${m.id}`}
               className="text-sm font-medium hover:underline truncate block"
               style={{ color: "var(--color-accent)" }}
             >

@@ -109,13 +109,13 @@ export async function listMembers({
   // multiplying sitting_speakers rows. Joining bills directly inflates speech counts
   // because each bill adds rows to the aggregate.
   return db`
-    SELECT m.id, m.name, m.slug, m.photo_url, m.party, m.house, m.constituency,
+    SELECT m.id, m.name, m.photo_url, m.party, m.house, m.constituency,
            m.role, m.speeches_total, m.bills_total,
            coalesce(sum(ss.speech_count), 0)::int                     AS total_speeches,
            (SELECT count(*) FROM bills b WHERE b.sponsor_id = m.id)::int AS bills_sponsored
     FROM members m
     LEFT JOIN speakers sp ON sp.member_id = m.id
-    LEFT JOIN sitting_speakers ss ON ss.speaker_id = sp.id
+    LEFT JOIN sitting_speakers ss ON ss.speaker_id = sp.id AND ss.active
     WHERE m.parliament = '13th-parliament'
     ${houseFilter}
     ${typeFilter}
@@ -127,15 +127,45 @@ export async function listMembers({
   `;
 }
 
-export async function getMember(slug: string) {
+export async function getMemberById(id: string) {
   const [m] = await db`
-    SELECT id, name, slug, photo_url, party, house, constituency,
-           biography, positions, committees,
-           speeches_total, bills_total, speeches_last_year
-    FROM members
-    WHERE slug = ${slug}
+    SELECT m.id, m.name, m.photo_url, m.party, m.house, m.constituency,
+           m.biography, m.positions, m.committees,
+           m.speeches_total, m.bills_total, m.speeches_last_year,
+           source.source_url, source.base_url AS source_base_url
+    FROM members m
+    LEFT JOIN LATERAL (
+      SELECT ms.source_url, ds.base_url
+      FROM member_sources ms
+      JOIN data_sources ds ON ds.id = ms.data_source_id
+      WHERE ms.member_id = m.id
+      ORDER BY ms.last_seen_at DESC, ms.id
+      LIMIT 1
+    ) source ON TRUE
+    WHERE m.id = ${id}
   `;
   return m ?? null;
+}
+
+export async function resolveLegacyMemberSlug(slug: string) {
+  const rows = await db<{ id: string }[]>`
+    SELECT DISTINCT candidate.id
+    FROM (
+      SELECT m.id
+      FROM members m
+      WHERE m.slug = ${slug}
+         OR regexp_replace(regexp_replace(split_part(m.url, '?', 1), '/+$', ''), '^.*/', '') = ${slug}
+
+      UNION
+
+      SELECT ms.member_id AS id
+      FROM member_sources ms
+      WHERE regexp_replace(regexp_replace(split_part(ms.source_url, '?', 1), '/+$', ''), '^.*/', '') = ${slug}
+    ) candidate
+    ORDER BY candidate.id
+    LIMIT 2
+  `;
+  return rows.map((row) => row.id);
 }
 
 export async function getMemberBills(memberId: string, page = 1, limit = 20) {
@@ -155,6 +185,8 @@ export async function getMemberBills(memberId: string, page = 1, limit = 20) {
     JOIN bills b ON b.id = bm.bill_id
     JOIN speakers sp ON sp.id = bms.speaker_id
     WHERE sp.member_id = ${memberId}
+      AND bms.active
+      AND bm.active
     GROUP BY b.id
     ORDER BY last_seen DESC, speeches DESC
     LIMIT ${limit + 1} OFFSET ${offset}
@@ -179,6 +211,8 @@ export async function getMemberTopics(memberId: string, page = 1, limit = 30) {
     JOIN sittings s ON s.id = t.sitting_id
     JOIN speakers sp ON sp.id = ts.speaker_id
     WHERE sp.member_id = ${memberId}
+      AND ts.active
+      AND t.active
     GROUP BY t.title, t.section_type, s.date, s.house
     ORDER BY s.date DESC
     LIMIT ${limit + 1} OFFSET ${offset}
@@ -194,7 +228,7 @@ export async function getMemberSponsoredBills(memberId: string) {
            min(bm.date) AS first_seen,
            max(bm.date) AS last_seen
     FROM bills b
-    LEFT JOIN bill_mentions bm ON bm.bill_id = b.id
+    LEFT JOIN bill_mentions bm ON bm.bill_id = b.id AND bm.active
     WHERE b.sponsor_id = ${memberId}
     GROUP BY b.id
     ORDER BY max(bm.date) DESC NULLS LAST, b.name
@@ -209,6 +243,8 @@ export async function getMemberBillCount(memberId: string) {
     JOIN bills b ON b.id = bm.bill_id
     JOIN speakers sp ON sp.id = bms.speaker_id
     WHERE sp.member_id = ${memberId}
+      AND bms.active
+      AND bm.active
   `;
   return r.count as number;
 }
@@ -217,8 +253,11 @@ export async function getMemberTopicCount(memberId: string) {
   const [r] = await db`
     SELECT count(*)::int AS count
     FROM topic_speakers ts
+    JOIN topics t ON t.id = ts.topic_id
     JOIN speakers sp ON sp.id = ts.speaker_id
     WHERE sp.member_id = ${memberId}
+      AND ts.active
+      AND t.active
   `;
   return r.count as number;
 }
@@ -231,6 +270,7 @@ export async function getMemberStats(memberId: string) {
     FROM sitting_speakers ss
     JOIN speakers sp ON sp.id = ss.speaker_id
     WHERE sp.member_id = ${memberId}
+      AND ss.active
   `;
   return stats;
 }

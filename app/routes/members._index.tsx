@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Form, Link } from "react-router";
 
 import { FilterButton, FilterPanel } from "~/components/FilterPanel";
+import { MemberAvatar } from "~/components/MemberAvatar";
 import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
 import { fromParam } from "~/lib/navigation";
@@ -208,8 +209,8 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {members.map((m: any) => (
             <Link
-              key={m.slug}
-              to={`/members/${m.slug}${fromParam("/members", searchStr)}`}
+              key={m.id}
+              to={`/members/${m.id}${fromParam("/members", searchStr)}`}
               className="flex items-center gap-3 p-4 rounded-lg border transition-all"
               style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
               onMouseEnter={(e) => {
@@ -221,27 +222,13 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
                 e.currentTarget.style.borderColor = "var(--color-border)";
               }}
             >
-              {m.photoUrl ? (
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src={m.photoUrl}
-                  alt={m.name}
-                  className="w-11 h-11 rounded-full object-cover shrink-0"
-                  style={{ border: "1px solid var(--color-border)" }}
-                />
-              ) : (
-                <div
-                  className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center font-serif"
-                  style={{
-                    backgroundColor: "var(--color-surface)",
-                    color: "var(--color-muted)",
-                    fontSize: "1.1rem",
-                  }}
-                >
-                  {m.name[0]}
-                </div>
-              )}
+              <MemberAvatar
+                name={m.name}
+                src={m.photoUrl}
+                className="w-11 h-11 rounded-full object-cover shrink-0"
+                style={{ border: "1px solid var(--color-border)" }}
+                fallbackStyle={{ fontSize: "1.1rem" }}
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="font-medium text-sm truncate">{m.name}</span>

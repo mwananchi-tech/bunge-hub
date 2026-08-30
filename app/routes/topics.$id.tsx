@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Link, data } from "react-router";
 
 import { MarkdownContent } from "~/components/MarkdownContent";
+import { MemberAvatar } from "~/components/MemberAvatar";
 import { ModelBadge } from "~/components/ModelBadge";
 import { getFromParam } from "~/lib/navigation";
 import { getTopic, getTopicSpeakers } from "~/lib/queries/topics.server";
+import { sourceHost } from "~/lib/source-urls";
 
 import type { Route } from "./+types/topics.$id";
 
@@ -50,10 +52,6 @@ export function meta({ data }: Route.MetaArgs) {
   ];
 }
 
-function sittingSlugFromUrl(url: string) {
-  return url?.split("/").filter(Boolean).pop() ?? "";
-}
-
 function subsectionAnchor(title: string) {
   return title
     .toLowerCase()
@@ -69,13 +67,10 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
   const [shownCount, setShownCount] = useState(INITIAL);
   const [expandedSpeaker, setExpandedSpeaker] = useState<number | null>(null);
 
-  const sittingSlug = sittingSlugFromUrl(t.sittingUrl ?? "");
-  const transcriptUrl = sittingSlug
-    ? `/sittings/${sittingSlug}#${subsectionAnchor(t.title)}`
+  const transcriptUrl = t.sittingId
+    ? `/sittings/${t.sittingId}#${subsectionAnchor(t.title)}`
     : null;
-  const externalUrl = t.sittingUrl?.startsWith("http")
-    ? t.sittingUrl
-    : `https://mzalendo.com${t.sittingUrl}`;
+  const externalUrl = t.sittingUrl;
 
   const speakerSummaries = speakers.filter((s: any) => s.summary);
   const hasTopicSummary = !!t.summary;
@@ -135,7 +130,7 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
                 backgroundColor: "var(--color-surface)",
               }}
             >
-              mzalendo.com ↗
+              {sourceHost(externalUrl)} ↗
             </a>
           )}
         </div>
@@ -196,44 +191,29 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
               style={{ cursor: s.summary ? "pointer" : "default" }}
               onClick={() => s.summary && setExpandedSpeaker(expandedSpeaker === i ? null : i)}
             >
-              {s.photoUrl ? (
-                s.slug ? (
-                  <Link to={`/members/${s.slug}`} onClick={(e) => e.stopPropagation()}>
-                    <img
-                      loading="lazy"
-                      decoding="async"
-                      src={s.photoUrl}
-                      alt={s.name}
-                      className="w-8 h-8 rounded-full object-cover shrink-0"
-                      style={{ border: "1px solid var(--color-border)" }}
-                    />
-                  </Link>
-                ) : (
-                  <img
-                    loading="lazy"
-                    decoding="async"
+              {s.memberId ? (
+                <Link to={`/members/${s.memberId}`} onClick={(e) => e.stopPropagation()}>
+                  <MemberAvatar
+                    name={s.name}
                     src={s.photoUrl}
-                    alt={s.name}
                     className="w-8 h-8 rounded-full object-cover shrink-0"
+                    fallbackClassName="font-serif text-xs"
                     style={{ border: "1px solid var(--color-border)" }}
                   />
-                )
+                </Link>
               ) : (
-                <div
-                  className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-serif text-xs"
-                  style={{
-                    backgroundColor: "var(--color-surface)",
-                    color: "var(--color-muted)",
-                    border: "1px solid var(--color-border)",
-                  }}
-                >
-                  {s.name?.[0] ?? "?"}
-                </div>
+                <MemberAvatar
+                  name={s.name ?? "Unknown speaker"}
+                  src={s.photoUrl}
+                  className="w-8 h-8 rounded-full object-cover shrink-0"
+                  fallbackClassName="font-serif text-xs"
+                  style={{ border: "1px solid var(--color-border)" }}
+                />
               )}
               <div className="flex-1 min-w-0">
-                {s.slug ? (
+                {s.memberId ? (
                   <Link
-                    to={`/members/${s.slug}`}
+                    to={`/members/${s.memberId}`}
                     className="text-sm font-medium hover:underline"
                     style={{ color: "var(--color-accent)" }}
                     onClick={(e) => e.stopPropagation()}

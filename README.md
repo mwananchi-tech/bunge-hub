@@ -17,13 +17,8 @@ Built on top of [odnelazm](https://github.com/mwananchi-tech/odnelazm), which ha
 ### 1. Start PostgreSQL
 
 ```bash
-docker run -d \
-  --name bunge-hub-db \
-  -e POSTGRES_USER=odnelazm \
-  -e POSTGRES_PASSWORD=odnelazm \
-  -e POSTGRES_DB=odnelazm \
-  -p 5432:5432 \
-  postgres:16
+docker compose up -d --wait postgres
+export DATABASE_URL='postgres://odnelazm:odnelazm@localhost:5432/odnelazm'
 ```
 
 ### 2. Populate the database
@@ -39,7 +34,7 @@ Run the ingest pipeline to fetch the last 3 months of sittings and enrich member
 ```bash
 odnelazm-pipeline ingest \
   --start-date $(date -v-3m +%Y-%m-%d) \
-  --enrich-members
+  --import-profiles
 ```
 
 See the [odnelazm-ingest README](https://github.com/mwananchi-tech/odnelazm/blob/main/crates/odnelazm-ingest/README.md) for the full reference, including the `enrich` subcommand for AI-generated summaries.
@@ -69,6 +64,37 @@ npm run dev
 ```
 
 The app will be available at `http://localhost:5173`.
+
+## Data contract and cutover
+
+Bunge Hub is the compatible read layer for odnelazm migrations `0015`-`0017`:
+
+- Canonical links use stable UUID routes. Source links resolve through
+  `sitting_sources` and their `data_sources.base_url`, falling back to the legacy
+  canonical URL for rows without an alias.
+- Sitting routes using a legacy URL suffix permanently redirect (`308`) to the
+  canonical `/sittings/<uuid>` route when exactly one row matches. No match is a
+  `404`; ambiguous aliases return `409` rather than redirecting incorrectly.
+- Member profiles, speaker links, search results, and sitemap entries use the
+  immutable `members.id` at `/members/<uuid>`. Legacy member slugs resolve from
+  member URLs and source URL metadata, then redirect with `308` when unique;
+  missing slugs return `404` and ambiguous slugs return `409`.
+- Member images use a shared accessible avatar. A missing image renders an
+  initial immediately, and a URL that fails in the browser is replaced by the
+  same fallback without changing the server-rendered initial state. External
+  profile links come from `member_sources` and `data_sources`, not canonical
+  identity fields.
+- Queries expose only active reconciled bill mentions, topics, and speaker
+  projections. Inactive rows and their preserved AI summaries remain in the
+  database for audit and recovery.
+- Sitting pages continue to display preserved generated summaries while their
+  stale metadata queues them for regeneration; ingestion does not blank summary
+  content during cutover.
+
+Deploy this compatible app before the reconciliation writer performs a real
+ingest. The complete backup, migration, ingestion, verification, and rollback
+procedure is in the
+[odnelazm-ingest runbook](https://github.com/mwananchi-tech/odnelazm/blob/main/crates/odnelazm-ingest/README.md#canonical-data-migration-runbook).
 
 ## Other scripts
 

@@ -18,7 +18,10 @@ export async function listSittings({
   const houseFilter = house ? db`AND s.house = ${house}` : db``;
   const yearFilter = year ? db`AND EXTRACT(YEAR FROM s.date) = ${year}` : db``;
   return db`
-    SELECT s.url, s.date, s.house, s.session_type, s.summary, s.pdf_url,
+    SELECT s.id, s.url, s.date, s.house, s.session_type,
+           coalesce(s.generated_summary, s.summary) AS summary, s.pdf_url,
+           coalesce(source.source_url, s.url) AS source_url,
+           source.base_url AS source_base_url,
            coalesce(bill_previews.items, '[]'::json) AS bill_previews,
            coalesce(bill_previews.total, 0)::int AS bill_preview_total,
            coalesce(topic_previews.items, '[]'::json) AS topic_previews,
@@ -36,7 +39,7 @@ export async function listSittings({
                row_number() OVER (ORDER BY max(bm.date) DESC, b.name) AS rn
         FROM bill_mentions bm
         JOIN bills b ON b.id = bm.bill_id
-        WHERE bm.sitting_id = s.id
+        WHERE bm.sitting_id = s.id AND bm.active
         GROUP BY b.id, b.name
       ) bills_for_sitting
     ) bill_previews ON TRUE
@@ -51,10 +54,18 @@ export async function listSittings({
         SELECT t.id, t.title, t.speech_count,
                row_number() OVER (ORDER BY t.speech_count DESC, t.title) AS rn
         FROM topics t
-        WHERE t.sitting_id = s.id
+        WHERE t.sitting_id = s.id AND t.active
         ORDER BY t.speech_count DESC, t.title
       ) topics_for_sitting
     ) topic_previews ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT ss.source_url, ds.base_url
+      FROM sitting_sources ss
+      JOIN data_sources ds ON ds.id = ss.data_source_id
+      WHERE ss.sitting_id = s.id
+      ORDER BY (ss.source_url = s.url) DESC, ss.last_seen_at DESC, ss.id
+      LIMIT 1
+    ) source ON TRUE
     WHERE TRUE
     ${houseFilter}
     ${yearFilter}
@@ -63,35 +74,58 @@ export async function listSittings({
   `;
 }
 
-export async function getSittingBySlug(slug: string) {
-  // slug is the last path segment of the URL
+export async function getSittingById(id: string) {
   const [sitting] = await db`
-    SELECT url, date, house, session_type, summary, sentiment,
-           source, pdf_url, raw_json
-    FROM sittings
-    WHERE url LIKE ${"%/" + slug + "/"} OR url LIKE ${"%/" + slug}
+    SELECT s.id, s.url, s.date, s.house, s.session_type, s.summary,
+           s.generated_summary, s.generated_summary_model, s.sentiment,
+           s.source, s.pdf_url, s.raw_json, s.youtube_url,
+           coalesce(source.source_url, s.url) AS source_url,
+           source.base_url AS source_base_url
+    FROM sittings s
+    LEFT JOIN LATERAL (
+      SELECT ss.source_url, ds.base_url
+      FROM sitting_sources ss
+      JOIN data_sources ds ON ds.id = ss.data_source_id
+      WHERE ss.sitting_id = s.id
+      ORDER BY (ss.source_url = s.url) DESC, ss.last_seen_at DESC, ss.id
+      LIMIT 1
+    ) source ON TRUE
+    WHERE s.id = ${id}
   `;
   return sitting ?? null;
 }
 
-// Returns url→member_slug mapping for all speakers in a sitting
-export async function getSpeakerSlugs(sittingUrl: string) {
+export async function resolveLegacySittingSuffix(suffix: string) {
+  const rows = await db<{ id: string }[]>`
+    SELECT DISTINCT s.id
+    FROM sittings s
+    LEFT JOIN sitting_sources ss ON ss.sitting_id = s.id
+    WHERE regexp_replace(regexp_replace(split_part(coalesce(ss.source_url, s.url), '?', 1), '/+$', ''), '^.*/', '') = ${suffix}
+       OR regexp_replace(regexp_replace(split_part(s.url, '?', 1), '/+$', ''), '^.*/', '') = ${suffix}
+    ORDER BY s.id
+    LIMIT 2
+  `;
+  return rows.map((row) => row.id);
+}
+
+// Returns speaker URL to canonical member identity mapping for active speakers.
+export async function getSpeakerSlugs(sittingId: string) {
   const rows = await db`
-    SELECT sp.url AS speaker_url, m.slug AS member_slug,
+    SELECT sp.url AS speaker_url, m.id AS member_id,
            m.name AS member_name, m.photo_url AS member_photo,
            m.party AS member_party
     FROM sitting_speakers ss
-    JOIN sittings s ON s.id = ss.sitting_id
     JOIN speakers sp ON sp.id = ss.speaker_id
     JOIN members m ON m.id = sp.member_id
-    WHERE s.url = ${sittingUrl}
+    WHERE ss.sitting_id = ${sittingId}
+      AND ss.active
       AND sp.url IS NOT NULL
   `;
   return Object.fromEntries(
     rows.map((r: any) => [
       r.speakerUrl,
       {
-        slug: r.memberSlug,
+        id: r.memberId,
         name: r.memberName,
         photo: r.memberPhoto,
         party: r.memberParty,

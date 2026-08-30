@@ -1,15 +1,34 @@
 import { useEffect, useState } from "react";
-import { Link, data } from "react-router";
+import { Link, data, redirect } from "react-router";
 
 import { MarkdownContent } from "~/components/MarkdownContent";
-import { getSittingBySlug, getSpeakerSlugs } from "~/lib/queries/sittings.server";
+import { MemberAvatar } from "~/components/MemberAvatar";
+import { ModelBadge } from "~/components/ModelBadge";
+import {
+  getSittingById,
+  getSpeakerSlugs,
+  resolveLegacySittingSuffix,
+} from "~/lib/queries/sittings.server";
+import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
 
-import type { Route } from "./+types/sittings.$slug";
+import type { Route } from "./+types/sittings.$id";
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const sitting = await getSittingBySlug(decodeURIComponent(params.slug!));
+  const routeParam = decodeURIComponent(params.id!);
+  const isUuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(routeParam);
+  if (!isUuid) {
+    const matches = await resolveLegacySittingSuffix(routeParam);
+    if (matches.length > 1) {
+      throw data("Sitting route is ambiguous", { status: 409 });
+    }
+    if (matches.length === 1) throw redirect(`/sittings/${matches[0]}`, 308);
+    throw data("Sitting not found", { status: 404 });
+  }
+
+  const sitting = await getSittingById(routeParam);
   if (!sitting) throw data("Sitting not found", { status: 404 });
-  const speakerMap = await getSpeakerSlugs(sitting.url);
+  if (routeParam !== sitting.id) throw redirect(`/sittings/${sitting.id}`, 308);
+  const speakerMap = await getSpeakerSlugs(sitting.id);
   return { sitting, speakerMap };
 }
 
@@ -39,13 +58,10 @@ export default function SittingDetail({ loaderData }: Route.ComponentProps) {
   const { sitting: s, speakerMap } = loaderData;
   const transcript = s.rawJson as any;
   const sections = transcript?.sections ?? [];
+  const summary = s.generatedSummary ?? s.summary;
 
-  const externalUrl = s.url.startsWith("http") ? s.url : `https://mzalendo.com${s.url}`;
-  const pdfUrl = s.pdfUrl
-    ? s.pdfUrl.startsWith("http")
-      ? s.pdfUrl
-      : `https://mzalendo.com${s.pdfUrl}`
-    : null;
+  const externalUrl = resolveSourceUrl(s.sourceUrl, s.sourceBaseUrl);
+  const pdfUrl = s.pdfUrl ? resolveSourceUrl(s.pdfUrl, s.sourceBaseUrl ?? externalUrl) : null;
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
@@ -81,7 +97,7 @@ export default function SittingDetail({ loaderData }: Route.ComponentProps) {
               backgroundColor: "var(--color-surface)",
             }}
           >
-            View on mzalendo.com ↗
+            View on {sourceHost(externalUrl)} ↗
           </a>
           {pdfUrl && (
             <a
@@ -100,7 +116,7 @@ export default function SittingDetail({ loaderData }: Route.ComponentProps) {
           )}
         </div>
 
-        {s.summary && (
+        {summary && (
           <div
             className="p-5 rounded-xl mb-6"
             style={{
@@ -114,7 +130,8 @@ export default function SittingDetail({ loaderData }: Route.ComponentProps) {
             >
               Session Summary
             </div>
-            <MarkdownContent content={s.summary} />
+            <MarkdownContent content={summary} />
+            {s.generatedSummary && <ModelBadge model={s.generatedSummaryModel} />}
           </div>
         )}
 
@@ -272,28 +289,23 @@ function Contribution({ c, speakerMap }: { c: any; speakerMap: Record<string, an
     <div className="flex gap-3">
       {/* Avatar */}
       <div className="shrink-0 pt-0.5">
-        {member?.photo ? (
-          <Link to={`/members/${member.slug}`}>
-            <img
-              loading="lazy"
-              decoding="async"
+        {member?.id ? (
+          <Link to={`/members/${member.id}`}>
+            <MemberAvatar
+              name={member.name}
               src={member.photo}
-              alt={member.name}
               className="w-9 h-9 rounded-full object-cover"
+              fallbackClassName="font-serif text-xs font-medium"
               style={{ border: "1px solid var(--color-border)" }}
             />
           </Link>
         ) : (
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-serif font-medium"
-            style={{
-              backgroundColor: "var(--color-surface)",
-              color: "var(--color-muted)",
-              border: "1px solid var(--color-border)",
-            }}
-          >
-            {(c.speakerName ?? "?")[0]}
-          </div>
+          <MemberAvatar
+            name={c.speakerName ?? "Unknown speaker"}
+            className="w-9 h-9 rounded-full object-cover"
+            fallbackClassName="font-serif text-xs font-medium"
+            style={{ border: "1px solid var(--color-border)" }}
+          />
         )}
       </div>
 
@@ -301,9 +313,9 @@ function Contribution({ c, speakerMap }: { c: any; speakerMap: Record<string, an
       <div className="flex-1 min-w-0">
         {/* Speaker name + role */}
         <div className="flex items-baseline gap-2 mb-1.5 flex-wrap">
-          {member?.slug ? (
+          {member?.id ? (
             <Link
-              to={`/members/${member.slug}`}
+              to={`/members/${member.id}`}
               className="font-medium text-sm hover:underline"
               style={{ color: "var(--color-accent)" }}
             >

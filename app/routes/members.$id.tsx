@@ -1,19 +1,22 @@
-import { Link, data } from "react-router";
+import { Link, data, redirect } from "react-router";
 
 import { InfoTooltip } from "~/components/InfoTooltip";
+import { MemberAvatar } from "~/components/MemberAvatar";
 import { Pagination } from "~/components/Pagination";
 import { getFromParam } from "~/lib/navigation";
 import {
-  getMember,
   getMemberBillCount,
   getMemberBills,
+  getMemberById,
   getMemberSponsoredBills,
   getMemberStats,
   getMemberTopicCount,
   getMemberTopics,
+  resolveLegacyMemberSlug,
 } from "~/lib/queries/members.server";
+import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
 
-import type { Route } from "./+types/members.$slug";
+import type { Route } from "./+types/members.$id";
 
 const BILL_LIMIT = 20;
 const TOPIC_LIMIT = 30;
@@ -21,10 +24,20 @@ const TOPIC_LIMIT = 30;
 type Tab = "sponsored" | "bills" | "topics";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-  const member = await getMember(params.slug!);
-  if (!member) throw data("Member not found", { status: 404 });
-
+  const routeParam = decodeURIComponent(params.id!);
   const url = new URL(request.url);
+  const isUuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(routeParam);
+  if (!isUuid) {
+    const matches = await resolveLegacyMemberSlug(routeParam);
+    if (matches.length > 1) throw data("Member route is ambiguous", { status: 409 });
+    if (matches.length === 1) throw redirect(`/members/${matches[0]}${url.search}`, 308);
+    throw data("Member not found", { status: 404 });
+  }
+
+  const member = await getMemberById(routeParam);
+  if (!member) throw data("Member not found", { status: 404 });
+  if (routeParam !== member.id) throw redirect(`/members/${member.id}${url.search}`, 308);
+
   const tab = (url.searchParams.get("tab") ?? "sponsored") as Tab;
   const page = Math.max(1, Number(url.searchParams.get("page") ?? 1));
   const from = getFromParam(url, "/members");
@@ -102,7 +115,12 @@ export function meta({ data }: Route.MetaArgs) {
     { property: "og:title", content: `${name} | Bunge Hub` },
     { property: "og:description", content: description },
     { property: "og:type", content: "profile" },
-    ...(m?.photoUrl ? [{ property: "og:image", content: m.photoUrl }] : []),
+    ...(m?.id
+      ? [{ property: "og:url", content: `https://bunge-hub.mwananchi.tech/members/${m.id}` }]
+      : []),
+    ...(m?.photoUrl?.startsWith("https://fra1.digitaloceanspaces.com/")
+      ? [{ property: "og:image", content: m.photoUrl }]
+      : []),
   ];
 }
 
@@ -125,6 +143,7 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
   const committees: string[] = m.committees ?? [];
   const primaryPosition =
     positions.find((p) => !p.startsWith("A member of the"))?.replace(/^Elected to be /, "") ?? null;
+  const externalUrl = m.sourceUrl ? resolveSourceUrl(m.sourceUrl, m.sourceBaseUrl) : null;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
@@ -138,23 +157,13 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
 
       {/* Header */}
       <div className="flex gap-6 mb-10">
-        {m.photoUrl ? (
-          <img
-            loading="lazy"
-            decoding="async"
-            src={m.photoUrl}
-            alt={m.name}
-            className="w-24 h-24 rounded-full object-cover shrink-0"
-            style={{ border: "2px solid var(--color-border)" }}
-          />
-        ) : (
-          <div
-            className="w-24 h-24 rounded-full shrink-0 flex items-center justify-center font-serif text-3xl"
-            style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}
-          >
-            {m.name[0]}
-          </div>
-        )}
+        <MemberAvatar
+          name={m.name}
+          src={m.photoUrl}
+          className="w-24 h-24 rounded-full object-cover shrink-0"
+          fallbackClassName="font-serif text-3xl"
+          style={{ border: "2px solid var(--color-border)" }}
+        />
         <div className="min-w-0">
           <h1 className="font-serif text-3xl mb-1">{m.name}</h1>
           <div className="flex flex-wrap items-center gap-2 text-sm mb-2">
@@ -181,6 +190,17 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
             <p className="text-sm mb-3" style={{ color: "var(--color-muted)" }}>
               {primaryPosition}
             </p>
+          )}
+          {externalUrl && (
+            <a
+              href={externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-xs hover:underline mb-3"
+              style={{ color: "var(--color-muted)" }}
+            >
+              View profile on {sourceHost(externalUrl)} ↗
+            </a>
           )}
           <div className="flex flex-wrap items-center gap-5 text-sm">
             <Stat label="Sittings" value={stats?.sittingsAttended ?? 0} />
