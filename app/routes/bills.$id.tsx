@@ -24,6 +24,7 @@ import {
   getBillJourney,
 } from "~/lib/queries/bills.server";
 import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
+import { useResolvedTheme } from "~/lib/theme";
 
 import type { Route } from "./+types/bills.$id";
 
@@ -157,6 +158,7 @@ function buildFlow(journey: BillJourneyItem[]): { nodes: BillNode[]; edges: Edge
 
 export default function BillDetail({ loaderData }: Route.ComponentProps) {
   const { bill, journey, from } = loaderData;
+  const resolvedTheme = useResolvedTheme();
   const [selected, setSelected] = useState<BillJourneyItem | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [shownCount, setShownCount] = useState(8);
@@ -291,6 +293,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
               edges={edges}
               nodeTypes={NODE_TYPES}
               onNodeClick={onNodeClick}
+              colorMode={resolvedTheme}
               fitView
               fitViewOptions={{ padding: 0.3 }}
               nodesDraggable={false}
