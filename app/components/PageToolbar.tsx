@@ -68,7 +68,7 @@ export function PageToolbar({
           name="q"
           defaultValue={q}
           placeholder={searchPlaceholder}
-          className="flex-1 px-3 py-1.5 text-sm rounded outline-none"
+          className="flex-1 px-3 py-1.5 text-sm rounded-control"
           style={inputStyle}
         />
         <button
@@ -134,7 +134,7 @@ export function PageToolbar({
                 name={sort.paramName ?? "sort"}
                 defaultValue={sort.current}
                 onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                className="w-full px-3 py-1.5 text-sm rounded outline-none cursor-pointer"
+                className="w-full px-3 py-1.5 text-sm rounded-control cursor-pointer"
                 style={inputStyle}
               >
                 {sort.options.map((o) => (
