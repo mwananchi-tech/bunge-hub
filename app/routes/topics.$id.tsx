@@ -78,216 +78,221 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
   const hasSummaries = hasTopicSummary || speakerSummaries.length > 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="text-sm mb-2" style={{ color: "var(--color-muted)" }}>
-          <Link to={from} className="hover:underline">
-            Topics
-          </Link>
-          {" / "}
-          <span>{t.sectionType}</span>
-        </div>
-        <h1 className="font-serif text-3xl mb-3 leading-snug">{t.title}</h1>
-        <div
-          className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm mb-5"
-          style={{ color: "var(--color-muted)" }}
-        >
-          <span>
-            {new Date(t.date).toLocaleDateString("en-KE", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </span>
-          <span>·</span>
-          <span>{t.house}</span>
-          <span>·</span>
-          <span>{t.sessionType}</span>
-          <span>·</span>
-          <span>{t.speechCount} speeches</span>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {transcriptUrl && (
-            <ButtonLink to={transcriptUrl} variant="filled" size="sm">
-              Jump to transcript
-            </ButtonLink>
-          )}
-          {t.sittingUrl && (
-            <a
-              href={externalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={buttonClasses({ variant: "outlined", size: "sm" })}
-            >
-              {sourceHost(externalUrl)} ↗
-            </a>
-          )}
-        </div>
-      </div>
-
-      {/* AI summary */}
-      <div
-        className="mb-8 p-5 rounded-xl"
-        style={{ border: "1px solid var(--color-border)", backgroundColor: "var(--color-surface)" }}
-      >
-        <div className="flex items-center justify-between mb-2">
+    <div className="page-frame py-12">
+      <div className="max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="text-sm mb-2" style={{ color: "var(--color-muted)" }}>
+            <Link to={from} className="hover:underline">
+              Topics
+            </Link>
+            {" / "}
+            <span>{t.sectionType}</span>
+          </div>
+          <h1 className="font-serif text-3xl mb-3 leading-snug">{t.title}</h1>
           <div
-            className="text-xs font-medium uppercase tracking-widest"
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm mb-5"
             style={{ color: "var(--color-muted)" }}
           >
-            Summary
-          </div>
-          {!hasSummaries && (
-            <span
-              className="text-xs px-2 py-0.5 rounded"
-              style={{
-                backgroundColor: "var(--color-gold)22",
-                color: "var(--color-gold)",
-                border: "1px solid var(--color-gold)44",
-              }}
-            >
-              AI enrichment pending
+            <span>
+              {new Date(t.date).toLocaleDateString("en-KE", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
             </span>
+            <span>·</span>
+            <span>{t.house}</span>
+            <span>·</span>
+            <span>{t.sessionType}</span>
+            <span>·</span>
+            <span>{t.speechCount} speeches</span>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {transcriptUrl && (
+              <ButtonLink to={transcriptUrl} variant="filled" size="sm">
+                Jump to transcript
+              </ButtonLink>
+            )}
+            {t.sittingUrl && (
+              <a
+                href={externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonClasses({ variant: "outlined", size: "sm" })}
+              >
+                {sourceHost(externalUrl)} ↗
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* AI summary */}
+        <div
+          className="mb-8 p-5 rounded-xl"
+          style={{
+            border: "1px solid var(--color-border)",
+            backgroundColor: "var(--color-surface)",
+          }}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div
+              className="text-xs font-medium uppercase tracking-widest"
+              style={{ color: "var(--color-muted)" }}
+            >
+              Summary
+            </div>
+            {!hasSummaries && (
+              <span
+                className="text-xs px-2 py-0.5 rounded"
+                style={{
+                  backgroundColor: "var(--color-gold)22",
+                  color: "var(--color-gold)",
+                  border: "1px solid var(--color-gold)44",
+                }}
+              >
+                AI enrichment pending
+              </span>
+            )}
+          </div>
+          {hasTopicSummary ? (
+            <>
+              <MarkdownContent content={t.summary} />
+              <ModelBadge model={t.summaryModel} />
+            </>
+          ) : (
+            <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+              {hasSummaries
+                ? "No topic-level summary yet. Per-speaker summaries are available in the contributors list below."
+                : "An AI-generated summary will appear here once the enrichment pipeline runs."}
+            </p>
           )}
         </div>
-        {hasTopicSummary ? (
-          <>
-            <MarkdownContent content={t.summary} />
-            <ModelBadge model={t.summaryModel} />
-          </>
-        ) : (
-          <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-            {hasSummaries
-              ? "No topic-level summary yet. Per-speaker summaries are available in the contributors list below."
-              : "An AI-generated summary will appear here once the enrichment pipeline runs."}
-          </p>
-        )}
-      </div>
 
-      {/* Speakers — lightweight list, no contribution text */}
-      <div
-        className="text-xs font-medium uppercase tracking-widest mb-4"
-        style={{ color: "var(--color-muted)" }}
-      >
-        {speakers.length} contributor{speakers.length !== 1 ? "s" : ""}
-      </div>
+        {/* Speakers — lightweight list, no contribution text */}
+        <div
+          className="text-xs font-medium uppercase tracking-widest mb-4"
+          style={{ color: "var(--color-muted)" }}
+        >
+          {speakers.length} contributor{speakers.length !== 1 ? "s" : ""}
+        </div>
 
-      <div className="divide-y divide-border">
-        {speakers.slice(0, shownCount).map((s: any, i: number) => (
-          <div key={i}>
-            <div
-              className="flex items-center gap-3 py-3"
-              style={{ cursor: s.summary ? "pointer" : "default" }}
-              onClick={() => s.summary && setExpandedSpeaker(expandedSpeaker === i ? null : i)}
-            >
-              {s.memberId ? (
-                <Link to={`/members/${s.memberId}`} onClick={(e) => e.stopPropagation()}>
+        <div className="divide-y divide-border">
+          {speakers.slice(0, shownCount).map((s: any, i: number) => (
+            <div key={i}>
+              <div
+                className="flex items-center gap-3 py-3"
+                style={{ cursor: s.summary ? "pointer" : "default" }}
+                onClick={() => s.summary && setExpandedSpeaker(expandedSpeaker === i ? null : i)}
+              >
+                {s.memberId ? (
+                  <Link to={`/members/${s.memberId}`} onClick={(e) => e.stopPropagation()}>
+                    <MemberAvatar
+                      name={s.name}
+                      src={s.photoUrl}
+                      className="w-8 h-8 rounded-full object-cover shrink-0"
+                      fallbackClassName="font-serif text-xs"
+                      style={{ border: "1px solid var(--color-border)" }}
+                    />
+                  </Link>
+                ) : (
                   <MemberAvatar
-                    name={s.name}
+                    name={s.name ?? "Unknown speaker"}
                     src={s.photoUrl}
                     className="w-8 h-8 rounded-full object-cover shrink-0"
                     fallbackClassName="font-serif text-xs"
                     style={{ border: "1px solid var(--color-border)" }}
                   />
-                </Link>
-              ) : (
-                <MemberAvatar
-                  name={s.name ?? "Unknown speaker"}
-                  src={s.photoUrl}
-                  className="w-8 h-8 rounded-full object-cover shrink-0"
-                  fallbackClassName="font-serif text-xs"
-                  style={{ border: "1px solid var(--color-border)" }}
-                />
-              )}
-              <div className="flex-1 min-w-0">
-                {s.memberId ? (
-                  <Link
-                    to={`/members/${s.memberId}`}
-                    className="text-sm font-medium hover:underline"
-                    style={{ color: "var(--color-accent)" }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {s.name}
-                  </Link>
-                ) : (
-                  <span className="text-sm font-medium">{s.name}</span>
                 )}
-                {s.party && (
-                  <span className="text-xs ml-2" style={{ color: "var(--color-muted)" }}>
-                    {s.party}
+                <div className="flex-1 min-w-0">
+                  {s.memberId ? (
+                    <Link
+                      to={`/members/${s.memberId}`}
+                      className="text-sm font-medium hover:underline"
+                      style={{ color: "var(--color-accent)" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {s.name}
+                    </Link>
+                  ) : (
+                    <span className="text-sm font-medium">{s.name}</span>
+                  )}
+                  {s.party && (
+                    <span className="text-xs ml-2" style={{ color: "var(--color-muted)" }}>
+                      {s.party}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {s.summary && <SparkleIcon />}
+                  <span className="text-xs tabular-nums" style={{ color: "var(--color-muted)" }}>
+                    {s.speechCount} speech{s.speechCount !== 1 ? "es" : ""}
                   </span>
-                )}
+                  <svg
+                    className="w-3.5 h-3.5 transition-transform"
+                    style={{
+                      color: "var(--color-muted)",
+                      transform: expandedSpeaker === i ? "rotate(180deg)" : "rotate(0deg)",
+                      opacity: s.summary ? 1 : 0,
+                    }}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {s.summary && <SparkleIcon />}
-                <span className="text-xs tabular-nums" style={{ color: "var(--color-muted)" }}>
-                  {s.speechCount} speech{s.speechCount !== 1 ? "es" : ""}
-                </span>
-                <svg
-                  className="w-3.5 h-3.5 transition-transform"
+              {expandedSpeaker === i && s.summary && (
+                <div
+                  className="ml-11 mb-2 p-3 rounded-lg text-xs"
                   style={{
+                    backgroundColor: "var(--color-surface)",
                     color: "var(--color-muted)",
-                    transform: expandedSpeaker === i ? "rotate(180deg)" : "rotate(0deg)",
-                    opacity: s.summary ? 1 : 0,
                   }}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+                  <MarkdownContent content={s.summary} />
+                  <ModelBadge model={s.summaryModel} />
+                </div>
+              )}
             </div>
-            {expandedSpeaker === i && s.summary && (
-              <div
-                className="ml-11 mb-2 p-3 rounded-lg text-xs"
-                style={{
-                  backgroundColor: "var(--color-surface)",
-                  color: "var(--color-muted)",
-                }}
-              >
-                <MarkdownContent content={s.summary} />
-                <ModelBadge model={s.summaryModel} />
-              </div>
-            )}
+          ))}
+          {speakers.length === 0 && (
+            <p className="py-6 text-sm" style={{ color: "var(--color-muted)" }}>
+              No speaker data available.
+            </p>
+          )}
+        </div>
+        {shownCount < speakers.length && (
+          <Button
+            onClick={() => setShownCount((c) => c + BATCH)}
+            size="sm"
+            fullWidth
+            className="mt-2"
+          >
+            + {Math.min(BATCH, speakers.length - shownCount)} more contributors
+          </Button>
+        )}
+
+        {/* Jump to transcript CTA */}
+        {transcriptUrl && (
+          <div
+            className="mt-8 pt-6 text-center"
+            style={{ borderTop: "1px solid var(--color-border)" }}
+          >
+            <Link
+              to={transcriptUrl}
+              className="text-sm font-medium hover:underline"
+              style={{ color: "var(--color-accent)" }}
+            >
+              Read the full debate in the sitting transcript →
+            </Link>
           </div>
-        ))}
-        {speakers.length === 0 && (
-          <p className="py-6 text-sm" style={{ color: "var(--color-muted)" }}>
-            No speaker data available.
-          </p>
         )}
       </div>
-      {shownCount < speakers.length && (
-        <Button
-          onClick={() => setShownCount((c) => c + BATCH)}
-          size="sm"
-          fullWidth
-          className="mt-2"
-        >
-          + {Math.min(BATCH, speakers.length - shownCount)} more contributors
-        </Button>
-      )}
-
-      {/* Jump to transcript CTA */}
-      {transcriptUrl && (
-        <div
-          className="mt-8 pt-6 text-center"
-          style={{ borderTop: "1px solid var(--color-border)" }}
-        >
-          <Link
-            to={transcriptUrl}
-            className="text-sm font-medium hover:underline"
-            style={{ color: "var(--color-accent)" }}
-          >
-            Read the full debate in the sitting transcript →
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

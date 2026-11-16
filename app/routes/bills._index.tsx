@@ -65,7 +65,7 @@ export default function BillsIndex({ loaderData }: Route.ComponentProps) {
   const { bills, q, sort, page, hasMore, totalPages, searchStr } = loaderData;
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12">
+    <div className="page-frame py-12">
       <div className="mb-8">
         <h1 className="font-serif text-3xl mb-1">Bills</h1>
         <p className="text-sm" style={{ color: "var(--color-muted)" }}>

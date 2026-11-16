@@ -64,44 +64,31 @@ export default function SittingDetail({ loaderData }: Route.ComponentProps) {
   const pdfUrl = s.pdfUrl ? resolveSourceUrl(s.pdfUrl, s.sourceBaseUrl ?? externalUrl) : null;
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      {/* Header */}
-      <div className="mb-10">
-        <div className="text-sm mb-2" style={{ color: "var(--color-muted)" }}>
-          <Link to="/sittings" className="hover:underline">
-            Sittings
-          </Link>{" "}
-          /
-        </div>
-        <h1 className="font-serif text-3xl mb-1">
-          {s.house} · {s.sessionType}
-        </h1>
-        <p className="text-base mb-5" style={{ color: "var(--color-muted)" }}>
-          {new Date(s.date).toLocaleDateString("en-KE", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
-        </p>
+    <div className="page-frame py-12">
+      <div className="max-w-4xl">
+        {/* Header */}
+        <div className="mb-10">
+          <div className="text-sm mb-2" style={{ color: "var(--color-muted)" }}>
+            <Link to="/sittings" className="hover:underline">
+              Sittings
+            </Link>{" "}
+            /
+          </div>
+          <h1 className="font-serif text-3xl mb-1">
+            {s.house} · {s.sessionType}
+          </h1>
+          <p className="text-base mb-5" style={{ color: "var(--color-muted)" }}>
+            {new Date(s.date).toLocaleDateString("en-KE", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
 
-        <div className="flex flex-wrap gap-2 mb-6">
-          <a
-            href={externalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded"
-            style={{
-              border: "1px solid var(--color-border)",
-              color: "var(--color-muted)",
-              backgroundColor: "var(--color-surface)",
-            }}
-          >
-            View on {sourceHost(externalUrl)} ↗
-          </a>
-          {pdfUrl && (
+          <div className="flex flex-wrap gap-2 mb-6">
             <a
-              href={pdfUrl}
+              href={externalUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded"
@@ -111,54 +98,69 @@ export default function SittingDetail({ loaderData }: Route.ComponentProps) {
                 backgroundColor: "var(--color-surface)",
               }}
             >
-              Download PDF ↗
+              View on {sourceHost(externalUrl)} ↗
             </a>
-          )}
-        </div>
-
-        {summary && (
-          <div
-            className="p-5 rounded-xl mb-6"
-            style={{
-              backgroundColor: "var(--color-surface)",
-              border: "1px solid var(--color-border)",
-            }}
-          >
-            <div
-              className="text-xs font-medium uppercase tracking-widest mb-2"
-              style={{ color: "var(--color-muted)" }}
-            >
-              Session Summary
-            </div>
-            <MarkdownContent content={summary} />
-            {s.generatedSummary && <ModelBadge model={s.generatedSummaryModel} />}
+            {pdfUrl && (
+              <a
+                href={pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded"
+                style={{
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-muted)",
+                  backgroundColor: "var(--color-surface)",
+                }}
+              >
+                Download PDF ↗
+              </a>
+            )}
           </div>
-        )}
 
-        {/* YouTube live stream / archived recording
+          {summary && (
+            <div
+              className="p-5 rounded-xl mb-6"
+              style={{
+                backgroundColor: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                className="text-xs font-medium uppercase tracking-widest mb-2"
+                style={{ color: "var(--color-muted)" }}
+              >
+                Session Summary
+              </div>
+              <MarkdownContent content={summary} />
+              {s.generatedSummary && <ModelBadge model={s.generatedSummaryModel} />}
+            </div>
+          )}
+
+          {/* YouTube live stream / archived recording
             youtube_url is set manually or via a future enrichment step.
             Renders as an embedded player when available. */}
-        {s.youtubeUrl ? (
-          <div
-            className="rounded-xl overflow-hidden mb-6"
-            style={{ border: "1px solid var(--color-border)", aspectRatio: "16/9" }}
-          >
-            <iframe
-              src={`https://www.youtube.com/embed/${youtubeId(s.youtubeUrl)}`}
-              title="Parliamentary sitting recording"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full"
-            />
-          </div>
-        ) : null}
-      </div>
+          {s.youtubeUrl ? (
+            <div
+              className="rounded-xl overflow-hidden mb-6"
+              style={{ border: "1px solid var(--color-border)", aspectRatio: "16/9" }}
+            >
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeId(s.youtubeUrl)}`}
+                title="Parliamentary sitting recording"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          ) : null}
+        </div>
 
-      {/* Transcript */}
-      <div className="space-y-10">
-        {sections.map((section: any, si: number) => (
-          <SectionBlock key={si} section={section} speakerMap={speakerMap} />
-        ))}
+        {/* Transcript */}
+        <div className="space-y-10">
+          {sections.map((section: any, si: number) => (
+            <SectionBlock key={si} section={section} speakerMap={speakerMap} />
+          ))}
+        </div>
       </div>
     </div>
   );

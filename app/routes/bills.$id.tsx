@@ -199,7 +199,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
         : null;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="page-frame py-12">
       {/* Bill header */}
       <div className="mb-8">
         <div className="text-sm mb-1" style={{ color: "var(--color-muted)" }}>

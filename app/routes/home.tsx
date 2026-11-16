@@ -44,7 +44,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { stats, topMPs, topSenators, recentBills, recentTopics, recentSittings } = loaderData;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
+    <div className="page-frame py-16">
       <div className="mb-16">
         <h1 className="font-serif text-5xl font-light mb-3">
           Kenya&apos;s parliamentary record,
@@ -102,7 +102,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-4 gap-10">
+      <div className="grid md:grid-cols-2 gap-x-12 gap-y-14">
         <section>
           <SectionHeader
             href="/members?house=National+Assembly&sort=most-active"
