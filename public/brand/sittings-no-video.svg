@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <!-- Background: deep parliament red with a soft light from the top left -->
+    <radialGradient id="bg" cx="35%" cy="30%" r="85%">
+      <stop offset="0" stop-color="#8c2a26"/>
+      <stop offset="0.55" stop-color="#5e1a18"/>
+      <stop offset="1" stop-color="#2e0b0b"/>
+    </radialGradient>
+
+    <!-- Paper / fabric grain over the background -->
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="table" tableValues="0 0.10"/></feComponentTransfer>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+
+    <!-- Wax body colour -->
+    <radialGradient id="wax" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#c8463c"/>
+      <stop offset="0.6" stop-color="#9e2b25"/>
+      <stop offset="1" stop-color="#6a1714"/>
+    </radialGradient>
+
+    <!-- Wobbly, poured-wax edge -->
+    <filter id="pour" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="11" result="t"/>
+      <feDisplacementMap in="SourceGraphic" in2="t" scale="34" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+
+    <!-- Raised, glossy wax: light from the top left -->
+    <filter id="emboss" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="blur"/>
+      <feSpecularLighting in="blur" surfaceScale="6" specularConstant="0.8" specularExponent="28" lighting-color="#ffd9cf" result="spec">
+        <fePointLight x="420" y="120" z="420"/>
+      </feSpecularLighting>
+      <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+      <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.32" k4="0"/>
+    </filter>
+
+    <!-- Pressed-in stamp area: shadow on the top-left inner edge -->
+    <filter id="pressed" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/>
+      <feOffset dx="6" dy="7" result="o"/>
+      <feComposite in="SourceAlpha" in2="o" operator="out" result="inner"/>
+      <feFlood flood-color="#2a0807" flood-opacity="0.75"/>
+      <feComposite in2="inner" operator="in" result="shadow"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b2"/>
+      <feOffset in="b2" dx="-4" dy="-4" result="o2"/>
+      <feComposite in="SourceAlpha" in2="o2" operator="out" result="inner2"/>
+      <feFlood flood-color="#ff9c8c" flood-opacity="0.35"/>
+      <feComposite in2="inner2" operator="in" result="glow"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shadow"/><feMergeNode in="glow"/></feMerge>
+    </filter>
+
+    <!-- Raised letters inside the stamp -->
+    <filter id="letters" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="b"/>
+      <feOffset in="b" dx="5" dy="6" result="sh"/>
+      <feFlood flood-color="#2a0807" flood-opacity="0.8"/>
+      <feComposite in2="sh" operator="in" result="shadow"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="b3"/>
+      <feSpecularLighting in="b3" surfaceScale="4" specularConstant="1" specularExponent="18" lighting-color="#ffe2d8" result="spec">
+        <fePointLight x="420" y="120" z="300"/>
+      </feSpecularLighting>
+      <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+      <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.7" k4="0" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+
+    <!-- Seal shadow on the background -->
+    <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="16"/>
+      <feOffset dx="10" dy="18" result="o"/>
+      <feFlood flood-color="#000" flood-opacity="0.55"/>
+      <feComposite in2="o" operator="in"/>
+    </filter>
+
+    <path id="ring" d="M 640 360 m -128 0 a 128 128 0 1 1 256 0 a 128 128 0 1 1 -256 0"/>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="#fff" filter="url(#grain)"/>
+
+  <!-- Seal -->
+  <g transform="translate(0 -18)">
+    <circle cx="640" cy="360" r="200" fill="#000" filter="url(#drop)"/>
+    <g filter="url(#emboss)">
+      <circle cx="640" cy="360" r="200" fill="url(#wax)" filter="url(#pour)"/>
+    </g>
+    <!-- Pressed stamp disc -->
+    <circle cx="640" cy="360" r="152" fill="#a32e27" filter="url(#pressed)"/>
+    <!-- Engraved rim and ring text -->
+    <circle cx="640" cy="360" r="146" fill="none" stroke="#7a1d18" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="640" cy="360" r="106" fill="none" stroke="#7a1d18" stroke-width="2" opacity="0.9"/>
+    <g filter="url(#letters)" fill="#b8392f">
+      <text font-family="Georgia, 'Times New Roman', serif" font-size="22" letter-spacing="6" font-weight="700">
+        <textPath href="#ring" startOffset="0" textLength="790" lengthAdjust="spacing">BUNGE HUB · 13TH PARLIAMENT · BUNGE HUB · KENYA ·</textPath>
+      </text>
+      <!-- BH monogram -->
+      <text x="598" y="400" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="128" font-weight="700">B</text>
+      <text x="684" y="400" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="128" font-weight="700">H</text>
+    </g>
+  </g>
+
+  <!-- Caption on the thumbnail -->
+  <text x="640" y="640" text-anchor="middle" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="5" fill="#f3d9d2" opacity="0.9">VIDEO COMING SOON</text>
+</svg>
