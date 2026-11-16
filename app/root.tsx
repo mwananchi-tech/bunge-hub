@@ -53,7 +53,7 @@ export default function App() {
       </main>
       <footer className="mt-24 border-t pt-10 pb-12" style={{ borderColor: "var(--color-border)" }}>
         <div
-          className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm"
+          className="page-frame flex flex-col sm:flex-row items-center justify-between gap-4 text-sm"
           style={{ color: "var(--color-muted)" }}
         >
           <div className="flex flex-col sm:flex-row items-center gap-4">
