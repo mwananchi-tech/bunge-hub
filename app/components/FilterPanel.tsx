@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 
 import { InfoTooltip } from "~/components/InfoTooltip";
+import { Button } from "~/components/ui/Button";
 
 interface FilterOption {
   value: string;
@@ -31,15 +32,10 @@ interface FilterPanelProps {
 
 export function FilterButton({ activeCount, onClick }: FilterButtonProps) {
   return (
-    <button
-      type="button"
+    <Button
       onClick={onClick}
-      className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded shrink-0 cursor-pointer"
-      style={{
-        border: "1px solid var(--color-border)",
-        backgroundColor: activeCount > 0 ? "var(--color-accent)" : "var(--color-surface)",
-        color: activeCount > 0 ? "white" : "var(--color-text)",
-      }}
+      variant={activeCount > 0 ? "filled" : "outlined"}
+      className="shrink-0"
     >
       <svg
         className="w-3.5 h-3.5"
@@ -52,7 +48,7 @@ export function FilterButton({ activeCount, onClick }: FilterButtonProps) {
       </svg>
       Filters
       {activeCount > 0 && <span className="text-xs font-semibold">{activeCount}</span>}
-    </button>
+    </Button>
   );
 }
 

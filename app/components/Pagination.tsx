@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { ButtonLink } from "~/components/ui/Button";
 
 interface Props {
   page: number;
@@ -34,18 +34,6 @@ function pageNumbers(current: number, total: number): (number | "…")[] {
   return result;
 }
 
-const linkStyle = {
-  border: "1px solid var(--color-border)",
-  backgroundColor: "var(--color-surface)",
-  color: "var(--color-text)",
-} as const;
-
-const activeStyle = {
-  backgroundColor: "var(--color-accent)",
-  color: "white",
-  border: "1px solid var(--color-accent)",
-} as const;
-
 export function Pagination({ page, hasMore, totalPages, searchStr = "" }: Props) {
   const total = totalPages ?? (hasMore ? page + 1 : page);
 
@@ -57,13 +45,9 @@ export function Pagination({ page, hasMore, totalPages, searchStr = "" }: Props)
     <div className="flex items-center justify-center gap-1 mt-10 flex-wrap">
       {/* Previous */}
       {page > 1 && (
-        <Link
-          to={pageUrl(searchStr, page - 1)}
-          className="px-3 py-1.5 text-sm rounded"
-          style={linkStyle}
-        >
+        <ButtonLink to={pageUrl(searchStr, page - 1)} aria-label="Previous page">
           ←
-        </Link>
+        </ButtonLink>
       )}
 
       {/* Page numbers */}
@@ -78,14 +62,15 @@ export function Pagination({ page, hasMore, totalPages, searchStr = "" }: Props)
               …
             </span>
           ) : (
-            <Link
+            <ButtonLink
               key={p}
               to={pageUrl(searchStr, p)}
-              className="px-3 py-1.5 text-sm rounded tabular-nums min-w-[36px] text-center"
-              style={p === page ? activeStyle : linkStyle}
+              variant={p === page ? "filled" : "outlined"}
+              aria-current={p === page ? "page" : undefined}
+              className="tabular-nums min-w-9"
             >
               {p}
-            </Link>
+            </ButtonLink>
           )
         )
       ) : (
@@ -96,13 +81,9 @@ export function Pagination({ page, hasMore, totalPages, searchStr = "" }: Props)
 
       {/* Next */}
       {(hasMore || (totalPages && page < totalPages)) && (
-        <Link
-          to={pageUrl(searchStr, page + 1)}
-          className="px-3 py-1.5 text-sm rounded"
-          style={linkStyle}
-        >
+        <ButtonLink to={pageUrl(searchStr, page + 1)} aria-label="Next page">
           →
-        </Link>
+        </ButtonLink>
       )}
     </div>
   );

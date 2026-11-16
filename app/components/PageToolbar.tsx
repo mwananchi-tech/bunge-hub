@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Form, Link } from "react-router";
 
+import { Button } from "~/components/ui/Button";
+
 interface FilterPill {
   value: string;
   label: string;
@@ -71,13 +73,9 @@ export function PageToolbar({
           className="flex-1 px-3 py-1.5 text-sm rounded-control"
           style={inputStyle}
         />
-        <button
-          type="submit"
-          className="px-3 py-1.5 text-sm rounded shrink-0"
-          style={{ backgroundColor: "var(--color-accent)", color: "white" }}
-        >
+        <Button type="submit" variant="filled" className="shrink-0">
           Search
-        </button>
+        </Button>
       </Form>
 
       {/* Spacer — pushes sort + actions to the right on desktop */}
