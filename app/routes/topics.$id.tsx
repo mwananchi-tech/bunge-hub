@@ -183,7 +183,7 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
         {speakers.length} contributor{speakers.length !== 1 ? "s" : ""}
       </div>
 
-      <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+      <div className="divide-y divide-border">
         {speakers.slice(0, shownCount).map((s: any, i: number) => (
           <div key={i}>
             <div

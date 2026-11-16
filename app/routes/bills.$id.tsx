@@ -519,7 +519,7 @@ export default function BillDetail({ loaderData }: Route.ComponentProps) {
             >
               Full journey: {journey.length} session{journey.length !== 1 ? "s" : ""}
             </div>
-            <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+            <div className="divide-y divide-border">
               {journey.map((j) => (
                 <div key={j.id} className="py-3 flex items-center gap-4">
                   <span

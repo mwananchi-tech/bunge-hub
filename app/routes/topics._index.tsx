@@ -132,7 +132,7 @@ export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
       {topics.length === 0 ? (
         <p style={{ color: "var(--color-muted)" }}>No topics found.</p>
       ) : (
-        <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+        <div className="divide-y divide-border">
           {topics.map((t: any) => (
             <Link
               key={t.id}
