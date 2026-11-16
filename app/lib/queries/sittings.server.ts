@@ -19,7 +19,7 @@ export async function listSittings({
   const yearFilter = year ? db`AND EXTRACT(YEAR FROM s.date) = ${year}` : db``;
   return db`
     SELECT s.id, s.url, s.date, s.house, s.session_type,
-           coalesce(s.generated_summary, s.summary) AS summary, s.pdf_url,
+           coalesce(s.generated_summary, s.summary) AS summary, s.pdf_url, s.youtube_url,
            coalesce(source.source_url, s.url) AS source_url,
            source.base_url AS source_base_url,
            coalesce(bill_previews.items, '[]'::json) AS bill_previews,

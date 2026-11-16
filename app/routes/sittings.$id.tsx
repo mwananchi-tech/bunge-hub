@@ -10,6 +10,7 @@ import {
   resolveLegacySittingSuffix,
 } from "~/lib/queries/sittings.server";
 import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
+import { youtubeId } from "~/lib/youtube";
 
 import type { Route } from "./+types/sittings.$id";
 
@@ -171,15 +172,6 @@ export function subsectionId(title: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
-}
-
-function youtubeId(url: string): string {
-  try {
-    const u = new URL(url);
-    return u.searchParams.get("v") ?? u.pathname.split("/").pop() ?? "";
-  } catch {
-    return url;
-  }
 }
 
 function SectionBlock({ section, speakerMap }: { section: any; speakerMap: Record<string, any> }) {
