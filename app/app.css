@@ -23,6 +23,12 @@
   --color-accent-subtle-pressed: color-mix(in srgb, var(--color-accent) 14%, var(--color-bg));
   --color-focus: var(--color-accent);
 
+  /* Secondary role (gold family). Gold itself is too light for text (2.3:1),
+     so secondary text is a darker gold. Used for bills chips and the Senate. */
+  --color-secondary: #7a5a1e;
+  --color-secondary-subtle: color-mix(in srgb, var(--color-gold) 18%, var(--color-bg));
+  --color-secondary-subtle-hover: color-mix(in srgb, var(--color-gold) 30%, var(--color-bg));
+
   --radius-control: 0.25rem; /* buttons, inputs, pills */
 }
 
@@ -36,6 +42,9 @@
   --color-gold: #d9b876;
   /* White on #d47a7a is 3.1:1; dark text is 6.0:1 */
   --color-accent-contrast: #18140f;
+  --color-secondary: #d9b876;
+  --color-secondary-subtle: color-mix(in srgb, var(--color-gold) 14%, var(--color-bg));
+  --color-secondary-subtle-hover: color-mix(in srgb, var(--color-gold) 24%, var(--color-bg));
   color-scheme: dark;
 }
 
