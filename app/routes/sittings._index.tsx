@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Form, Link } from "react-router";
 
+import { NoVideoThumbnail } from "~/components/NoVideoThumbnail";
 import { Pagination } from "~/components/Pagination";
 import { Button, ButtonLink, buttonClasses } from "~/components/ui/Button";
 import { countSittings, listSittings } from "~/lib/queries/sittings.server";
@@ -178,14 +179,7 @@ function SittingThumbnail({ s }: { s: SittingListItem }) {
 
   return (
     <div>
-      <img
-        src="/brand/sittings-no-video.svg"
-        alt=""
-        width={1280}
-        height={720}
-        loading="lazy"
-        className="block aspect-video w-full rounded-lg object-cover"
-      />
+      <NoVideoThumbnail className="rounded-lg" />
       <p className="mt-2 text-xs text-muted">No video yet.</p>
     </div>
   );
