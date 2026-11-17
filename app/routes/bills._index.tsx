@@ -80,7 +80,7 @@ export default function BillsIndex({ loaderData }: Route.ComponentProps) {
         sort={{ current: sort, options: SORT_OPTIONS }}
       />
 
-      <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+      <div className="divide-y divide-border">
         {bills.length === 0 && (
           <p className="py-10 text-center text-sm" style={{ color: "var(--color-muted)" }}>
             No bills found.

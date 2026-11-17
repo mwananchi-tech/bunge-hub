@@ -4,6 +4,7 @@ import { Link, data } from "react-router";
 import { MarkdownContent } from "~/components/MarkdownContent";
 import { MemberAvatar } from "~/components/MemberAvatar";
 import { ModelBadge } from "~/components/ModelBadge";
+import { Button, ButtonLink, buttonClasses } from "~/components/ui/Button";
 import { getFromParam } from "~/lib/navigation";
 import { getTopic, getTopicSpeakers } from "~/lib/queries/topics.server";
 import { sourceHost } from "~/lib/source-urls";
@@ -110,25 +111,16 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
 
         <div className="flex flex-wrap gap-2">
           {transcriptUrl && (
-            <Link
-              to={transcriptUrl}
-              className="text-xs px-3 py-1.5 rounded font-medium"
-              style={{ backgroundColor: "var(--color-accent)", color: "white" }}
-            >
+            <ButtonLink to={transcriptUrl} variant="filled" size="sm">
               Jump to transcript
-            </Link>
+            </ButtonLink>
           )}
           {t.sittingUrl && (
             <a
               href={externalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded"
-              style={{
-                border: "1px solid var(--color-border)",
-                color: "var(--color-muted)",
-                backgroundColor: "var(--color-surface)",
-              }}
+              className={buttonClasses({ variant: "outlined", size: "sm" })}
             >
               {sourceHost(externalUrl)} ↗
             </a>
@@ -183,7 +175,7 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
         {speakers.length} contributor{speakers.length !== 1 ? "s" : ""}
       </div>
 
-      <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+      <div className="divide-y divide-border">
         {speakers.slice(0, shownCount).map((s: any, i: number) => (
           <div key={i}>
             <div
@@ -271,19 +263,14 @@ export default function TopicDetail({ loaderData }: Route.ComponentProps) {
         )}
       </div>
       {shownCount < speakers.length && (
-        <button
+        <Button
           onClick={() => setShownCount((c) => c + BATCH)}
-          className="text-xs w-full mt-2 py-1.5 rounded transition-colors"
-          style={{
-            border: "1px solid var(--color-border)",
-            color: "var(--color-muted)",
-            backgroundColor: "var(--color-surface)",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-accent)")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-muted)")}
+          size="sm"
+          fullWidth
+          className="mt-2"
         >
           + {Math.min(BATCH, speakers.length - shownCount)} more contributors
-        </button>
+        </Button>
       )}
 
       {/* Jump to transcript CTA */}

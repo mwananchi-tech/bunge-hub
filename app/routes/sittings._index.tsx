@@ -205,7 +205,7 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
 
-      <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+      <div className="divide-y divide-border">
         {sittings.length === 0 && (
           <p className="py-10 text-center text-sm" style={{ color: "var(--color-muted)" }}>
             No sittings found.

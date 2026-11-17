@@ -284,7 +284,7 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
               width="w-64"
             />
           </div>
-          <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+          <div className="divide-y divide-border">
             {sponsored.length === 0 ? (
               <Empty text="No sponsored bills found." />
             ) : (
@@ -342,7 +342,7 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
       {/* Bills debated */}
       {tab === "bills" && (
         <>
-          <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+          <div className="divide-y divide-border">
             {bills.length === 0 ? (
               <Empty text="No bills found." />
             ) : (
@@ -391,7 +391,7 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
       {/* Topics */}
       {tab === "topics" && (
         <>
-          <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+          <div className="divide-y divide-border">
             {topics.length === 0 ? (
               <Empty text="No topics found." />
             ) : (
