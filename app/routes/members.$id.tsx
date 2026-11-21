@@ -148,7 +148,7 @@ export default function MemberProfile({ loaderData }: Route.ComponentProps) {
   const externalUrl = m.sourceUrl ? resolveSourceUrl(m.sourceUrl, m.sourceBaseUrl) : null;
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12">
+    <div className="page-frame py-12">
       <div className="text-sm mb-6" style={{ color: "var(--color-muted)" }}>
         <Link to={loaderData.from} className="hover:underline">
           Members

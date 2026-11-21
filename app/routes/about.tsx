@@ -18,43 +18,57 @@ export function meta() {
 
 export default function About() {
   return (
-    <div className="max-w-2xl mx-auto px-6 py-16">
-      <Markdown
-        components={{
-          // h1 — page hero
-          h1: ({ children }) => (
-            <div className="mb-12">
-              <h1 className="font-serif text-4xl font-light mb-2">{children}</h1>
-              <p className="text-base" style={{ color: "var(--color-muted)" }}>
-                Kenya&apos;s parliamentary record, open and queryable.
+    <div className="page-frame py-16">
+      <div className="max-w-2xl">
+        <Markdown
+          components={{
+            // h1 — page hero
+            h1: ({ children }) => (
+              <div className="mb-12">
+                <h1 className="font-serif text-4xl font-light mb-2">{children}</h1>
+                <p className="text-base" style={{ color: "var(--color-muted)" }}>
+                  Kenya&apos;s parliamentary record, open and queryable.
+                </p>
+              </div>
+            ),
+            // h2 — section headings
+            h2: ({ children }) => (
+              <h2 className="font-serif text-xl mb-3 mt-10 first:mt-0">{children}</h2>
+            ),
+            // Wrap each section's content in muted colour
+            p: ({ children }) => (
+              <p className="text-sm leading-relaxed mb-3" style={{ color: "var(--color-muted)" }}>
+                {children}
               </p>
-            </div>
-          ),
-          // h2 — section headings
-          h2: ({ children }) => (
-            <h2 className="font-serif text-xl mb-3 mt-10 first:mt-0">{children}</h2>
-          ),
-          // Wrap each section's content in muted colour
-          p: ({ children }) => (
-            <p className="text-sm leading-relaxed mb-3" style={{ color: "var(--color-muted)" }}>
-              {children}
-            </p>
-          ),
-          ul: ({ children }) => (
-            <ul className="space-y-3 mb-4 text-sm" style={{ color: "var(--color-muted)" }}>
-              {children}
-            </ul>
-          ),
-          li: ({ children }) => <li>{children}</li>,
-          strong: ({ children }) => (
-            <strong className="font-medium" style={{ color: "var(--color-text)" }}>
-              {children}
-            </strong>
-          ),
-          em: ({ children }) => <em className="italic">{children}</em>,
-          a: ({ href, children }) => {
-            const isGithub = href?.includes("github.com/mwananchi-tech/bunge-hub/issues");
-            if (isGithub) {
+            ),
+            ul: ({ children }) => (
+              <ul className="space-y-3 mb-4 text-sm" style={{ color: "var(--color-muted)" }}>
+                {children}
+              </ul>
+            ),
+            li: ({ children }) => <li>{children}</li>,
+            strong: ({ children }) => (
+              <strong className="font-medium" style={{ color: "var(--color-text)" }}>
+                {children}
+              </strong>
+            ),
+            em: ({ children }) => <em className="italic">{children}</em>,
+            a: ({ href, children }) => {
+              const isGithub = href?.includes("github.com/mwananchi-tech/bunge-hub/issues");
+              if (isGithub) {
+                return (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                    style={{ color: "var(--color-accent)" }}
+                  >
+                    {children}
+                  </a>
+                );
+              }
+              // Internal-ish or mzalendo links
               return (
                 <a
                   href={href}
@@ -66,59 +80,47 @@ export default function About() {
                   {children}
                 </a>
               );
-            }
-            // Internal-ish or mzalendo links
-            return (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-                style={{ color: "var(--color-accent)" }}
+            },
+            // GitHub links at the end rendered as buttons
+            blockquote: ({ children }) => (
+              <blockquote
+                className="pl-4 border-l-2 italic text-sm mb-3"
+                style={{ borderColor: "var(--color-border)", color: "var(--color-muted)" }}
               >
                 {children}
-              </a>
-            );
-          },
-          // GitHub links at the end rendered as buttons
-          blockquote: ({ children }) => (
-            <blockquote
-              className="pl-4 border-l-2 italic text-sm mb-3"
-              style={{ borderColor: "var(--color-border)", color: "var(--color-muted)" }}
-            >
-              {children}
-            </blockquote>
-          ),
-        }}
-      >
-        {aboutContent}
-      </Markdown>
-
-      {/* Open source action buttons */}
-      <div className="mt-8 flex flex-wrap gap-3">
-        <a
-          href="https://github.com/mwananchi-tech/bunge-hub"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm"
-          style={{
-            backgroundColor: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            color: "var(--color-text)",
+              </blockquote>
+            ),
           }}
         >
-          <GithubIcon />
-          mwananchi-tech/bunge-hub
-        </a>
-        <a
-          href="https://github.com/mwananchi-tech/bunge-hub/issues/new"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm"
-          style={{ backgroundColor: "var(--color-accent)", color: "white" }}
-        >
-          Report an issue
-        </a>
+          {aboutContent}
+        </Markdown>
+
+        {/* Open source action buttons */}
+        <div className="mt-8 flex flex-wrap gap-3">
+          <a
+            href="https://github.com/mwananchi-tech/bunge-hub"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm"
+            style={{
+              backgroundColor: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
+              color: "var(--color-text)",
+            }}
+          >
+            <GithubIcon />
+            mwananchi-tech/bunge-hub
+          </a>
+          <a
+            href="https://github.com/mwananchi-tech/bunge-hub/issues/new"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm"
+            style={{ backgroundColor: "var(--color-accent)", color: "white" }}
+          >
+            Report an issue
+          </a>
+        </div>
       </div>
     </div>
   );

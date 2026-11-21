@@ -88,7 +88,7 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
   const [showFilters, setShowFilters] = useState(false);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="page-frame py-12">
       <div className="mb-8">
         <h1 className="font-serif text-3xl mb-1">Members</h1>
         <p className="text-sm" style={{ color: "var(--color-muted)" }}>

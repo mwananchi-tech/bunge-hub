@@ -20,8 +20,7 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label={showDark ? "Switch to light theme" : "Switch to dark theme"}
-      className="p-1.5 rounded cursor-pointer"
-      style={{ color: "var(--color-muted)" }}
+      className="inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-control border border-border bg-surface text-muted cursor-pointer transition-colors hover:border-accent hover:text-accent hover:bg-accent-subtle"
     >
       {showDark ? (
         <svg
