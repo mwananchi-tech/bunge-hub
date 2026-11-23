@@ -134,7 +134,7 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12">
+    <div className="page-frame py-12">
       <div className="mb-8">
         <h1 className="font-serif text-3xl mb-1">Sittings</h1>
         <p className="text-sm" style={{ color: "var(--color-muted)" }}>

@@ -47,6 +47,38 @@
   }
 }
 
+/* Page frame: one shared width for the header, every page and the footer,
+   so their left and right edges line up.
+   - Content is 1024px wide (64rem) with a 24px gutter.
+   - From 1024px screens up, the logo is pinned 32px from the screen edge, outside
+     the frame. If the screen is too narrow for the logo to fit beside the frame,
+     the left padding grows so the content clears the logo (header and page
+     together, so they stay aligned). */
+:root {
+  --frame-width: 64rem;
+  --frame-gutter: 1.5rem;
+  --frame-logo-edge: 2rem; /* logo distance from the screen edge */
+  --frame-logo-width: 8rem; /* logo mark + "Bunge Hub" wordmark */
+  --frame-logo-gap: 2rem; /* minimum space between logo and content */
+}
+
+@utility page-frame {
+  width: 100%;
+  max-width: var(--frame-width);
+  margin-inline: auto;
+  padding-inline: var(--frame-gutter);
+
+  @media (width >= 64rem) {
+    padding-left: max(
+      var(--frame-gutter),
+      calc(
+        var(--frame-logo-edge) + var(--frame-logo-width) + var(--frame-logo-gap) -
+          max(0px, (100vw - var(--frame-width)) / 2)
+      )
+    );
+  }
+}
+
 html,
 body {
   background-color: var(--color-bg);
