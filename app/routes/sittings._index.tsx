@@ -1,16 +1,18 @@
-import { useState } from "react";
-import { Form, Link } from "react-router";
+import { Form } from "react-router";
 
+import { NoVideoThumbnail } from "~/components/NoVideoThumbnail";
 import { Pagination } from "~/components/Pagination";
+import { PreviewChips, type PreviewItem } from "~/components/PreviewChips";
+import { Button, ButtonLink, buttonClasses } from "~/components/ui/Button";
 import { countSittings, listSittings } from "~/lib/queries/sittings.server";
 import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
+import { youtubeThumbnail } from "~/lib/youtube";
 
 import type { Route } from "./+types/sittings._index";
 
 const LIMIT = 40;
 const YEARS = [2026, 2025, 2024, 2023, 2022];
 
-type PreviewItem = { id: string | number; name?: string; title?: string };
 type SittingListItem = {
   id: string;
   url: string;
@@ -21,6 +23,7 @@ type SittingListItem = {
   sessionType: string;
   summary?: string;
   pdfUrl?: string;
+  youtubeUrl?: string | null;
   billPreviews: PreviewItem[];
   billPreviewTotal: number;
   topicPreviews: PreviewItem[];
@@ -70,6 +73,57 @@ const HOUSES = [
   { value: "Senate", label: "Senate" },
 ];
 
+function formatDate(date: string | Date) {
+  return new Date(date).toLocaleDateString("en-KE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <span className="w-12 text-xs font-medium uppercase tracking-widest text-muted">{label}</span>
+      <div className="flex flex-wrap gap-1">{children}</div>
+    </div>
+  );
+}
+
+function SittingThumbnail({ s }: { s: SittingListItem }) {
+  if (s.youtubeUrl) {
+    return (
+      <a
+        href={s.youtubeUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Watch the ${s.house} sitting of ${formatDate(s.date)} on YouTube`}
+        className="group relative block aspect-video overflow-hidden rounded-lg bg-surface"
+      >
+        <img
+          src={youtubeThumbnail(s.youtubeUrl)}
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+        <span className="absolute inset-0 m-auto grid h-12 w-12 place-items-center rounded-full bg-black/55 transition-transform group-hover:scale-110 group-hover:bg-[#c4302b]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </span>
+      </a>
+    );
+  }
+
+  return (
+    <div>
+      <NoVideoThumbnail className="rounded-lg" />
+      <p className="mt-2 text-xs text-muted">No video yet.</p>
+    </div>
+  );
+}
+
 export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
   const { sittings, house, year, page, hasMore, totalPages, searchStr } = loaderData;
 
@@ -79,218 +133,149 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
     if (y) p.set("year", String(y));
     return `?${p}`;
   }
-  function previewLabel(item: PreviewItem) {
-    return item.name ?? item.title ?? String(item.id);
-  }
-
-  function PreviewLinks({
-    title,
-    items,
-    total,
-    basePath,
-  }: {
-    title: string;
-    items: PreviewItem[];
-    total: number;
-    basePath: string;
-  }) {
-    const [shownCount, setShownCount] = useState(5);
-    if (!items.length) return null;
-
-    const visibleItems = items.slice(0, shownCount);
-    const revealableCount = Math.max(items.length - visibleItems.length, 0);
-    const remainingTotal = Math.max(total - visibleItems.length, 0);
-    const revealCount = Math.min(5, revealableCount);
-
-    return (
-      <div className="flex flex-wrap items-center gap-1.5 text-xs">
-        <span className="font-medium" style={{ color: "var(--color-muted)" }}>
-          {title}:
-        </span>
-        {visibleItems.map((item) => (
-          <Link
-            key={`${basePath}-${item.id}`}
-            to={`/${basePath}/${item.id}`}
-            className="px-2 py-0.5 rounded"
-            style={{ backgroundColor: "var(--color-surface)", color: "var(--color-text)" }}
-          >
-            {previewLabel(item)}
-          </Link>
-        ))}
-        {revealCount > 0 ? (
-          <button
-            type="button"
-            className="px-2 py-0.5 rounded"
-            style={{ backgroundColor: "var(--color-surface)", color: "var(--color-muted)" }}
-            onClick={() => setShownCount((count) => count + 5)}
-          >
-            +{revealCount} more
-          </button>
-        ) : remainingTotal > 0 ? (
-          <span style={{ color: "var(--color-muted)" }}>+{remainingTotal} more</span>
-        ) : null}
-      </div>
-    );
-  }
 
   return (
     <div className="page-frame py-12">
       <div className="mb-8">
         <h1 className="font-serif text-3xl mb-1">Sittings</h1>
-        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-          13th Parliament
-        </p>
+        <p className="text-sm text-muted">13th Parliament</p>
       </div>
 
-      {/* Toolbar — house filter + year shortcuts */}
-      <div className="flex flex-wrap items-center gap-3 mb-8">
-        {/* House filter */}
-        <Form method="get" className="flex flex-wrap gap-1">
-          {year && <input type="hidden" name="year" value={year} />}
-          {HOUSES.map((h) => {
-            const active = (house ?? "") === h.value;
-            return (
-              <button
-                key={h.value}
-                name="house"
-                value={h.value}
-                type="submit"
-                className="px-3 py-1.5 text-sm rounded"
-                style={{
-                  backgroundColor: active ? "var(--color-accent)" : "var(--color-surface)",
-                  color: active ? "white" : "var(--color-text)",
-                  border: "1px solid var(--color-border)",
-                }}
-              >
-                {h.label}
-              </button>
-            );
-          })}
-        </Form>
-
-        <div className="w-px h-5 shrink-0" style={{ backgroundColor: "var(--color-border)" }} />
-
-        {/* Year shortcuts */}
-        <div className="flex flex-wrap gap-1">
-          <Link
+      {/* Filters: house on top, year below */}
+      <div className="mb-8 grid gap-3">
+        <FilterRow label="House">
+          <Form method="get" className="contents">
+            {year && <input type="hidden" name="year" value={year} />}
+            {HOUSES.map((h) => {
+              const active = (house ?? "") === h.value;
+              return (
+                <Button
+                  key={h.value}
+                  name="house"
+                  value={h.value}
+                  type="submit"
+                  variant={active ? "filled" : "outlined"}
+                  aria-pressed={active}
+                >
+                  {h.label}
+                </Button>
+              );
+            })}
+          </Form>
+        </FilterRow>
+        <FilterRow label="Year">
+          <ButtonLink
             to={yearUrl(undefined)}
-            className="px-3 py-1.5 text-sm rounded"
-            style={{
-              backgroundColor: !year ? "var(--color-surface)" : "transparent",
-              color: !year ? "var(--color-text)" : "var(--color-muted)",
-              border: !year ? "1px solid var(--color-border)" : "1px solid transparent",
-              fontWeight: !year ? 500 : 400,
-            }}
+            variant={!year ? "filled" : "outlined"}
+            aria-current={!year ? "page" : undefined}
           >
             All
-          </Link>
-          {YEARS.map((y) => {
-            const active = year === y;
-            return (
-              <Link
-                key={y}
-                to={yearUrl(y)}
-                className="px-3 py-1.5 text-sm rounded tabular-nums"
-                style={{
-                  backgroundColor: active ? "var(--color-accent)" : "transparent",
-                  color: active ? "white" : "var(--color-muted)",
-                  border: active ? "1px solid var(--color-accent)" : "1px solid transparent",
-                  fontWeight: active ? 500 : 400,
-                }}
-              >
-                {y}
-              </Link>
-            );
-          })}
-        </div>
+          </ButtonLink>
+          {YEARS.map((y) => (
+            <ButtonLink
+              key={y}
+              to={yearUrl(y)}
+              variant={year === y ? "filled" : "outlined"}
+              aria-current={year === y ? "page" : undefined}
+              className="tabular-nums"
+            >
+              {y}
+            </ButtonLink>
+          ))}
+        </FilterRow>
       </div>
 
       <div className="divide-y divide-border">
         {sittings.length === 0 && (
-          <p className="py-10 text-center text-sm" style={{ color: "var(--color-muted)" }}>
-            No sittings found.
-          </p>
+          <p className="py-10 text-center text-sm text-muted">No sittings found.</p>
         )}
-        {(sittings as SittingListItem[]).map((s) => (
-          <div key={s.id} className="py-5 flex items-start gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span
-                  className="text-xs px-2 py-0.5 rounded font-medium"
-                  style={{
-                    backgroundColor:
-                      s.house === "Senate" ? "var(--color-accent)18" : "var(--color-gold)18",
-                    color: s.house === "Senate" ? "var(--color-accent)" : "var(--color-gold)",
-                  }}
-                >
+        {(sittings as SittingListItem[]).map((s) => {
+          const sourceUrl = resolveSourceUrl(s.sourceUrl, s.sourceBaseUrl);
+          return (
+            <article
+              key={s.id}
+              className="grid grid-cols-[minmax(0,1fr)] gap-4 py-6 md:grid-cols-[280px_minmax(0,1fr)] md:gap-6"
+            >
+              <SittingThumbnail s={s} />
+
+              <div className="min-w-0">
+                <h2 className="font-serif text-[22px] font-semibold leading-tight">
+                  <span
+                    aria-hidden="true"
+                    className={`mr-2 inline-block h-2 w-2 -translate-y-0.5 rounded-full align-middle ${
+                      s.house === "Senate" ? "bg-secondary" : "bg-accent"
+                    }`}
+                  />
                   {s.house}
-                </span>
-                <span className="text-sm font-medium">{s.sessionType}</span>
-              </div>
-              <div className="text-sm mb-1" style={{ color: "var(--color-muted)" }}>
-                {new Date(s.date).toLocaleDateString("en-KE", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </div>
-              {s.summary && (
-                <p
-                  className="text-xs leading-relaxed line-clamp-2 max-w-2xl mb-1"
-                  style={{ color: "var(--color-muted)" }}
-                >
-                  {s.summary}
-                </p>
-              )}
-              {(s.billPreviews.length > 0 || s.topicPreviews.length > 0) && (
-                <div className="mt-3 space-y-1.5">
-                  <PreviewLinks
+                  {s.sessionType && (
+                    <span className="font-medium text-muted"> · {s.sessionType}</span>
+                  )}
+                </h2>
+                <p className="mt-1 mb-3 text-sm text-muted">{formatDate(s.date)}</p>
+
+                {s.summary && (
+                  <p className="mb-3 max-w-2xl text-xs leading-relaxed text-muted line-clamp-2">
+                    {s.summary}
+                  </p>
+                )}
+
+                <div className="space-y-2">
+                  <PreviewChips
                     title="Bills"
                     items={s.billPreviews}
                     total={s.billPreviewTotal}
-                    basePath="bills"
+                    kind="bills"
                   />
-                  <PreviewLinks
+                  <PreviewChips
                     title="Topics"
                     items={s.topicPreviews}
                     total={s.topicPreviewTotal}
-                    basePath="topics"
+                    kind="topics"
                   />
                 </div>
-              )}
-              <div className="flex items-center gap-3 mt-2">
-                <Link
-                  to={`/sittings/${s.id}`}
-                  className="text-xs px-2.5 py-1 rounded"
-                  style={{ backgroundColor: "var(--color-accent)", color: "white" }}
-                >
-                  View transcript
-                </Link>
-                <a
-                  href={resolveSourceUrl(s.sourceUrl, s.sourceBaseUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs px-2.5 py-1 rounded"
-                  style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}
-                >
-                  {sourceHost(resolveSourceUrl(s.sourceUrl, s.sourceBaseUrl))} ↗
-                </a>
-                {s.pdfUrl && (
+
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {s.youtubeUrl && (
+                    <a
+                      href={s.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={buttonClasses({ variant: "filled", size: "sm" })}
+                    >
+                      ▶ Watch on YouTube
+                    </a>
+                  )}
+                  <ButtonLink
+                    to={`/sittings/${s.id}`}
+                    state={{ fromSittingsList: true }}
+                    variant={s.youtubeUrl ? "outlined" : "filled"}
+                    size="sm"
+                  >
+                    View transcript
+                  </ButtonLink>
                   <a
-                    href={resolveSourceUrl(s.pdfUrl, s.sourceBaseUrl ?? s.sourceUrl)}
+                    href={sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs px-2.5 py-1 rounded"
-                    style={{ border: "1px solid var(--color-border)", color: "var(--color-muted)" }}
+                    className={buttonClasses({ variant: "text", size: "sm" })}
                   >
-                    PDF ↗
+                    {sourceHost(sourceUrl)} ↗
                   </a>
-                )}
+                  {s.pdfUrl && (
+                    <a
+                      href={resolveSourceUrl(s.pdfUrl, s.sourceBaseUrl ?? s.sourceUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={buttonClasses({ variant: "text", size: "sm" })}
+                    >
+                      PDF ↗
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            </article>
+          );
+        })}
       </div>
 
       <Pagination page={page} hasMore={hasMore} totalPages={totalPages} searchStr={searchStr} />
