@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { Form, Link } from "react-router";
+import { Form } from "react-router";
 
 import { NoVideoThumbnail } from "~/components/NoVideoThumbnail";
 import { Pagination } from "~/components/Pagination";
+import { PreviewChips, type PreviewItem } from "~/components/PreviewChips";
 import { Button, ButtonLink, buttonClasses } from "~/components/ui/Button";
 import { countSittings, listSittings } from "~/lib/queries/sittings.server";
 import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
@@ -13,7 +13,6 @@ import type { Route } from "./+types/sittings._index";
 const LIMIT = 40;
 const YEARS = [2026, 2025, 2024, 2023, 2022];
 
-type PreviewItem = { id: string | number; name?: string; title?: string };
 type SittingListItem = {
   id: string;
   url: string;
@@ -74,14 +73,6 @@ const HOUSES = [
   { value: "Senate", label: "Senate" },
 ];
 
-const CHIP =
-  "inline-block max-w-full rounded-full border px-2.5 py-0.5 text-xs transition-colors truncate";
-const CHIP_KIND = {
-  /* Topics use the primary (accent) colour, bills the secondary (gold) colour */
-  topics: "border-accent/20 bg-accent-subtle text-accent hover:bg-accent-subtle-pressed",
-  bills: "border-secondary/25 bg-secondary-subtle text-secondary hover:bg-secondary-subtle-hover",
-};
-
 function formatDate(date: string | Date) {
   return new Date(date).toLocaleDateString("en-KE", {
     weekday: "long",
@@ -96,58 +87,6 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <span className="w-12 text-xs font-medium uppercase tracking-widest text-muted">{label}</span>
       <div className="flex flex-wrap gap-1">{children}</div>
-    </div>
-  );
-}
-
-function PreviewChips({
-  title,
-  items,
-  total,
-  kind,
-}: {
-  title: string;
-  items: PreviewItem[];
-  total: number;
-  kind: "bills" | "topics";
-}) {
-  const [shownCount, setShownCount] = useState(5);
-  if (!items.length) return null;
-
-  const visibleItems = items.slice(0, shownCount);
-  const revealableCount = Math.max(items.length - visibleItems.length, 0);
-  const remainingTotal = Math.max(total - visibleItems.length, 0);
-  const revealCount = Math.min(5, revealableCount);
-
-  return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5 sm:grid-cols-[3rem_minmax(0,1fr)] sm:items-start">
-      <span className="text-xs font-medium text-muted sm:pt-1">{title}</span>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {visibleItems.map((item) => {
-          const label = item.name ?? item.title ?? String(item.id);
-          return (
-            <Link
-              key={`${kind}-${item.id}`}
-              to={`/${kind}/${item.id}`}
-              title={label}
-              className={`${CHIP} ${CHIP_KIND[kind]}`}
-            >
-              {label}
-            </Link>
-          );
-        })}
-        {revealCount > 0 ? (
-          <button
-            type="button"
-            className={`${CHIP} cursor-pointer border-border text-muted hover:border-accent hover:text-accent`}
-            onClick={() => setShownCount((count) => count + 5)}
-          >
-            +{revealCount} more
-          </button>
-        ) : remainingTotal > 0 ? (
-          <span className="text-xs text-muted">+{remainingTotal} more</span>
-        ) : null}
-      </div>
     </div>
   );
 }
@@ -308,6 +247,7 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
                   )}
                   <ButtonLink
                     to={`/sittings/${s.id}`}
+                    state={{ fromSittingsList: true }}
                     variant={s.youtubeUrl ? "outlined" : "filled"}
                     size="sm"
                   >

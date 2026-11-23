@@ -95,6 +95,34 @@ export async function getSittingById(id: string) {
   return sitting ?? null;
 }
 
+// Bills and topics discussed in one sitting (same rules as the list previews, no limit).
+export async function getSittingPreviews(sittingId: string) {
+  const [row] = await db<
+    {
+      bills: { id: string; name: string }[];
+      topics: { id: string; title: string }[];
+    }[]
+  >`
+    SELECT
+      coalesce((
+        SELECT json_agg(json_build_object('id', x.id, 'name', x.name) ORDER BY x.last_date DESC, x.name)
+        FROM (
+          SELECT b.id, b.name, max(bm.date) AS last_date
+          FROM bill_mentions bm
+          JOIN bills b ON b.id = bm.bill_id
+          WHERE bm.sitting_id = ${sittingId} AND bm.active
+          GROUP BY b.id, b.name
+        ) x
+      ), '[]'::json) AS bills,
+      coalesce((
+        SELECT json_agg(json_build_object('id', t.id, 'title', t.title) ORDER BY t.speech_count DESC, t.title)
+        FROM topics t
+        WHERE t.sitting_id = ${sittingId} AND t.active
+      ), '[]'::json) AS topics
+  `;
+  return row ?? { bills: [], topics: [] };
+}
+
 export async function resolveLegacySittingSuffix(suffix: string) {
   const rows = await db<{ id: string }[]>`
     SELECT DISTINCT s.id
