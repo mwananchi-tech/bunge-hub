@@ -63,7 +63,7 @@ export async function loader() {
 
 export function meta() {
   const description =
-    "Kenya's parliamentary record, open and searchable. Every sitting, bill and representative of the 13th Parliament.";
+    "Kenya's parliamentary record, open and searchable. Every sitting, bill and member of the 13th Parliament.";
   return [
     { title: "Bunge Hub | Kenya's Parliament, open to every mwananchi" },
     { name: "description", content: description },
@@ -79,34 +79,33 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="page-frame pt-8 pb-12 sm:pt-16">
-      {/* Hero: stands on its own, with more space under it than between the sections below */}
-      <div className="mb-10 sm:mb-14">
-        <h1 className="mb-3 max-w-2xl font-serif text-[32px] font-light leading-tight sm:text-5xl">
-          Kenya&apos;s Parliament, open to every mwananchi.
-        </h1>
-        <p className="max-w-xl text-muted sm:text-lg">
-          Every sitting, bill and representative of the 13th Parliament, searchable.
-        </p>
-      </div>
+      {/* On web the search sits under the hero, close to the latest sitting.
+          On phones (below 768px) it moves above the heading, since the header has no search icon on home. */}
+      <div className="flex flex-col">
+        {/* Hero: stands on its own, with more space under it than between the sections below */}
+        <div className="mb-10 sm:mb-14">
+          <h1 className="mb-3 max-w-2xl font-serif text-[32px] font-light leading-tight sm:text-5xl">
+            Kenya&apos;s Parliament, open to every mwananchi.
+          </h1>
+          <p className="max-w-xl text-muted sm:text-lg">
+            Every sitting, bill and member of the 13th Parliament, searchable.
+          </p>
+        </div>
 
-      {/* Search sits close to the latest sitting, so the two read as one group */}
-      <button
-        type="button"
-        onClick={openSearch}
-        className="mb-6 flex h-11 w-full cursor-pointer items-center gap-2 rounded-control border border-border bg-surface px-4 text-left text-sm text-muted transition-colors hover:border-muted sm:h-10"
-      >
-        <SearchIcon />
-        <span className="truncate">Search a representative, county, bill or topic</span>
-      </button>
+        <button
+          type="button"
+          onClick={openSearch}
+          className="order-first mb-8 flex h-11 w-full cursor-pointer items-center gap-2 rounded-control border border-border bg-surface px-4 text-left text-sm text-muted transition-colors hover:border-muted md:order-none md:mb-6 md:h-10"
+        >
+          <SearchIcon />
+          <span className="truncate">Search a member, county, bill or topic</span>
+        </button>
+      </div>
 
       {latestSitting && <LatestSittingCard s={latestSitting} />}
 
       <section className="mb-12">
-        <SectionHeader
-          title="The representatives"
-          href="/members"
-          linkLabel="All representatives"
-        />
+        <SectionHeader title="The members" href="/members" linkLabel="All members" />
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
           <StatTile value={stats.mps} label="MPs" to="/members?house=National+Assembly" />
           <StatTile value={stats.senators} label="Senators" to="/members?house=Senate" />
