@@ -33,7 +33,7 @@ export function Nav() {
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
   const shortcutLabel = useShortcutLabel();
-  // On phones the home page has its own search bar above the heading, so the header hides its icon there
+  // The home page has its own search bar in the page, so the header hides its search button there (one search per screen)
   const isHome = location.pathname === "/";
 
   useEffect(() => {
@@ -106,7 +106,7 @@ export function Nav() {
               <button
                 onClick={() => setSearchOpen(true)}
                 aria-label="Search"
-                className={`${isHome ? "hidden md:flex" : "flex"} items-center justify-center gap-2 size-11 md:size-auto md:px-3 md:h-8 rounded-control text-sm`}
+                className={`${isHome ? "hidden" : "flex"} items-center justify-center gap-2 size-11 md:size-auto md:px-3 md:h-8 rounded-control text-sm`}
                 style={{
                   border: "1px solid var(--color-border)",
                   color: "var(--color-muted)",
