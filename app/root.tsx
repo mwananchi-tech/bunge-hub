@@ -8,6 +8,7 @@ import {
   isRouteErrorResponse,
 } from "react-router";
 
+import { BottomNav } from "~/components/BottomNav";
 import { Nav } from "~/components/Nav";
 import { NavigationProgress } from "~/components/NavigationProgress";
 import { themeInitScript } from "~/lib/theme";
@@ -45,7 +46,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col">
+    // pb-24 (96px) on phones keeps the last row clear of the fixed bottom tab bar
+    <div className="min-h-screen flex flex-col pb-24 md:pb-0">
       <NavigationProgress />
       <Nav />
       <main className="flex-1">
@@ -100,6 +102,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      <BottomNav />
     </div>
   );
 }
@@ -119,7 +122,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col pb-24 md:pb-0">
       <Nav />
       <main className="flex-1 max-w-2xl mx-auto px-6 pt-24">
         <h1 className="font-serif text-4xl mb-4">{message}</h1>
@@ -133,6 +136,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
           </pre>
         )}
       </main>
+      <BottomNav />
     </div>
   );
 }
