@@ -5,12 +5,19 @@ import { CommandPalette } from "./CommandPalette";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_LINKS = [
-  { to: "/members", label: "Members" },
+  { to: "/members", label: "Representatives" },
   { to: "/bills", label: "Bills" },
   { to: "/topics", label: "Topics" },
   { to: "/sittings", label: "Sittings" },
   { to: "/about", label: "About" },
 ];
+
+/** Dispatch this on window to open the search palette from anywhere. */
+export const OPEN_SEARCH_EVENT = "bungehub:open-search";
+
+export function openSearch() {
+  window.dispatchEvent(new Event(OPEN_SEARCH_EVENT));
+}
 
 function useShortcutLabel() {
   const [label, setLabel] = useState("⌘K");
@@ -35,8 +42,14 @@ export function Nav() {
         setSearchOpen(true);
       }
     };
+    // Other parts of the page (like the home page search box) can open search too
+    const open = () => setSearchOpen(true);
     window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener(OPEN_SEARCH_EVENT, open);
+    return () => {
+      window.removeEventListener("keydown", handler);
+      window.removeEventListener(OPEN_SEARCH_EVENT, open);
+    };
   }, []);
 
   return (
@@ -66,7 +79,7 @@ export function Nav() {
           </Link>
 
           <div className="page-frame flex-1 h-14 flex items-center gap-8">
-            {/* lg:-ml-3 cancels the link padding so the "M" of Members sits on the frame edge */}
+            {/* lg:-ml-3 cancels the link padding so the first letter of the first link sits on the frame edge */}
             <nav className="hidden sm:flex items-center gap-1 flex-1 lg:-ml-3">
               {NAV_LINKS.map(({ to, label }) => {
                 const active = location.pathname.startsWith(to);

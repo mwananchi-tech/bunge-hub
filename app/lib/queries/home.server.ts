@@ -5,6 +5,10 @@ export async function getHomeStats() {
     SELECT
       (SELECT count(*) FROM sittings)::int                               AS sittings,
       (SELECT count(*) FROM members)::int                                AS members,
+      (SELECT count(*) FROM members
+        WHERE parliament = '13th-parliament' AND house = 'National Assembly')::int AS mps,
+      (SELECT count(*) FROM members
+        WHERE parliament = '13th-parliament' AND house = 'Senate')::int  AS senators,
       (SELECT count(*) FROM bills WHERE sponsor_id IS NOT NULL)::int     AS bills,
       (SELECT count(*) FROM topics WHERE active)::int                    AS topics
   `;
