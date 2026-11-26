@@ -1,3 +1,13 @@
+import { useEffect, useState } from "react";
+import { useFetcher, useNavigate } from "react-router";
+
+import {
+  AppliedChip,
+  FilterSheet,
+  type FilterSheetGroup,
+  type FilterValues,
+  FiltersButton,
+} from "~/components/FilterSheet";
 import { NoVideoThumbnail } from "~/components/NoVideoThumbnail";
 import { Pagination } from "~/components/Pagination";
 import { PreviewChips, type PreviewItem } from "~/components/PreviewChips";
@@ -9,6 +19,37 @@ import { youtubeThumbnail } from "~/lib/youtube";
 import type { Route } from "./+types/sittings._index";
 
 const LIMIT = 40;
+const YEARS = [2026, 2025, 2024, 2023, 2022];
+
+const GROUPS: FilterSheetGroup[] = [
+  {
+    key: "house",
+    label: "House",
+    defaultValue: "",
+    options: [
+      { value: "", label: "Both" },
+      { value: "National Assembly", label: "National Assembly" },
+      { value: "Senate", label: "Senate" },
+    ],
+  },
+  {
+    key: "year",
+    label: "Year",
+    defaultValue: "",
+    options: [
+      { value: "", label: "All" },
+      ...YEARS.map((y) => ({ value: String(y), label: String(y) })),
+    ],
+  },
+];
+
+/** URL params for a set of filters, leaving out defaults so links stay short. */
+function toParams(values: FilterValues) {
+  const p = new URLSearchParams();
+  if (values.house) p.set("house", values.house);
+  if (values.year) p.set("year", values.year);
+  return p;
+}
 
 type SittingListItem = {
   id: string;
@@ -47,6 +88,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     page,
     hasMore,
     totalPages,
+    total,
     searchStr: url.searchParams.toString(),
   };
 }
@@ -107,7 +149,25 @@ function SittingThumbnail({ s }: { s: SittingListItem }) {
 }
 
 export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
-  const { sittings, page, hasMore, totalPages, searchStr } = loaderData;
+  const { sittings, house, year, page, hasMore, totalPages, searchStr } = loaderData;
+  const navigate = useNavigate();
+  const applied: FilterValues = { house: house ?? "", year: year ? String(year) : "" };
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [draft, setDraft] = useState<FilterValues>(applied);
+
+  // While the sheet is open, ask the server how many sittings the draft would show
+  const preview = useFetcher<typeof loader>();
+  const draftKey = toParams(draft).toString();
+  useEffect(() => {
+    if (sheetOpen) preview.load(`/sittings?index&${draftKey}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheetOpen, draftKey]);
+  const draftCount = preview.data && preview.state === "idle" ? preview.data.total : undefined;
+
+  const activeChips = GROUPS.filter((g) => applied[g.key] !== g.defaultValue).map((g) => ({
+    key: g.key,
+    label: g.options.find((o) => o.value === applied[g.key])?.label ?? applied[g.key],
+  }));
 
   return (
     <div className="page-frame py-12">
@@ -115,6 +175,45 @@ export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
         <h1 className="font-serif text-3xl mb-1">Sittings</h1>
         <p className="text-sm text-muted">13th Parliament</p>
       </div>
+
+      {/* Only filters here: search lives in the header */}
+      <div className="mb-8">
+        <FiltersButton
+          count={activeChips.length}
+          onClick={() => {
+            setDraft(applied);
+            setSheetOpen(true);
+          }}
+        />
+        {activeChips.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {activeChips.map((chip) => (
+              <AppliedChip
+                key={chip.key}
+                label={chip.label}
+                onRemove={() => navigate(`?${toParams({ ...applied, [chip.key]: "" })}`)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <FilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        groups={GROUPS}
+        draft={draft}
+        onChange={setDraft}
+        onApply={() => {
+          setSheetOpen(false);
+          navigate(`?${toParams(draft)}`);
+        }}
+        applyLabel={
+          draftCount === undefined
+            ? "Show sittings"
+            : `Show ${draftCount.toLocaleString()} sitting${draftCount !== 1 ? "s" : ""}`
+        }
+      />
 
       <div className="divide-y divide-border">
         {sittings.length === 0 && (
