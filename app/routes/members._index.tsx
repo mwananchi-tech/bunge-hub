@@ -1,9 +1,14 @@
-import { useState } from "react";
-import { Form, Link } from "react-router";
+import { useEffect, useState } from "react";
+import { Form, Link, useFetcher, useNavigate } from "react-router";
 
-import { FilterButton, FilterPanel } from "~/components/FilterPanel";
+import {
+  AppliedChip,
+  FilterSheet,
+  type FilterSheetGroup,
+  type FilterValues,
+  FiltersButton,
+} from "~/components/FilterSheet";
 import { MemberAvatar } from "~/components/MemberAvatar";
-import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
 import { formatMemberName } from "~/lib/member-name";
 import { fromParam } from "~/lib/navigation";
@@ -84,8 +89,82 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
     committees,
     searchStr,
   } = loaderData;
-  const activeFilterCount = [house, memberType, committee].filter(Boolean).length;
-  const [showFilters, setShowFilters] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const navigate = useNavigate();
+  const applied: FilterValues = {
+    sort,
+    house: house ?? "",
+    type: memberType ?? "",
+    committee: committee ?? "",
+  };
+  const [draft, setDraft] = useState<FilterValues>(applied);
+
+  // While the sheet is open, ask the server how many members the draft would show
+  const preview = useFetcher<typeof loader>();
+  const draftKey = toParams(draft, q).toString();
+  useEffect(() => {
+    if (sheetOpen) preview.load(`/members?index&${draftKey}`);
+    // preview.load is stable enough here; re-run only when the draft changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheetOpen, draftKey]);
+
+  const draftCommittees =
+    preview.data && preview.state === "idle" ? preview.data.committees : committees;
+  const draftCount = preview.data && preview.state === "idle" ? preview.data.totalCount : undefined;
+
+  const groups: FilterSheetGroup[] = [
+    { key: "sort", label: "Sort by", defaultValue: "name", options: SORT_OPTIONS },
+    {
+      key: "house",
+      label: "House",
+      defaultValue: "",
+      options: [
+        { value: "", label: "Both" },
+        { value: "National Assembly", label: "National Assembly" },
+        { value: "Senate", label: "Senate" },
+      ],
+    },
+    {
+      key: "type",
+      label: "Type",
+      defaultValue: "",
+      options: [
+        { value: "", label: "All" },
+        { value: "elected", label: "Elected" },
+        { value: "nominated", label: "Nominated" },
+        { value: "woman-rep", label: "Woman Rep (NA)" },
+      ],
+    },
+    {
+      key: "committee",
+      label: "Committee",
+      defaultValue: "",
+      collapseAfter: 7,
+      pluralLabel: "committees",
+      options: [
+        { value: "", label: "All" },
+        ...draftCommittees.map((c: any) => ({
+          value: c.name,
+          label: c.name.charAt(0).toUpperCase() + c.name.slice(1),
+        })),
+      ],
+    },
+  ];
+
+  // Filters that are on (anything that is not the default), shown as removable chips
+  const activeChips = groups.flatMap((g) => {
+    const value = applied[g.key];
+    if (value === g.defaultValue) return [];
+    const label =
+      g.options.find((o) => o.value === value)?.label ??
+      value.charAt(0).toUpperCase() + value.slice(1);
+    return [{ key: g.key, label }];
+  });
+
+  function openSheet() {
+    setDraft(applied);
+    setSheetOpen(true);
+  }
 
   return (
     <div className="page-frame py-12">
@@ -99,115 +178,64 @@ export default function MembersIndex({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <PageToolbar
-        q={q}
-        searchPlaceholder="Search by name, party or constituency…"
-        hiddenParams={{
-          ...(house ? { house } : {}),
-          ...(memberType ? { type: memberType } : {}),
-          ...(committee ? { committee } : {}),
-        }}
-        filterGroups={[]}
-        sort={{ current: sort, options: SORT_OPTIONS, paramName: "sort" }}
-        extraActions={
-          <FilterButton activeCount={activeFilterCount} onClick={() => setShowFilters((v) => !v)} />
-        }
-      />
+      {/* One search box and one Filters button. Press Enter to search. */}
+      <div className="flex gap-2 md:max-w-xl">
+        <Form method="get" role="search" className="flex-1 min-w-0">
+          {[...toParams(applied, undefined)].map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={v} />
+          ))}
+          <input
+            type="search"
+            name="q"
+            defaultValue={q}
+            placeholder="Search by name, party or constituency"
+            aria-label="Search members"
+            className="h-11 md:h-8 w-full rounded-control border border-border bg-surface px-4 md:px-3 text-sm text-text"
+          />
+        </Form>
+        <FiltersButton count={activeChips.length} onClick={openSheet} />
+      </div>
 
-      <FilterPanel
-        isOpen={showFilters}
-        clearUrl={`?${new URLSearchParams({ sort, ...(q ? { q } : {}) })}`}
-        groups={[
-          {
-            label: "House",
-            paramName: "house",
-            current: house ?? "",
-            options: [
-              { value: "", label: "Both" },
-              { value: "National Assembly", label: "National Assembly" },
-              { value: "Senate", label: "Senate" },
-            ],
-            preserveParams: {
-              sort,
-              ...(q ? { q } : {}),
-              ...(memberType ? { type: memberType } : {}),
-              ...(committee ? { committee } : {}),
-            },
-          },
-          {
-            label: "Type",
-            paramName: "type",
-            current: memberType ?? "",
-            options: [
-              { value: "", label: "All" },
-              { value: "elected", label: "Elected" },
-              { value: "nominated", label: "Nominated" },
-              { value: "woman-rep", label: "Woman Rep (NA)" },
-            ],
-            preserveParams: {
-              sort,
-              ...(q ? { q } : {}),
-              ...(house ? { house } : {}),
-              ...(committee ? { committee } : {}),
-            },
-          },
-        ]}
-        extra={
-          committees.length > 0 ? (
-            <div>
-              <div
-                className="text-xs font-medium uppercase tracking-widest mb-2"
-                style={{ color: "var(--color-muted)" }}
-              >
-                Committee
-              </div>
-              <Form method="get">
-                {house && <input type="hidden" name="house" value={house} />}
-                {sort !== "name" && <input type="hidden" name="sort" value={sort} />}
-                {q && <input type="hidden" name="q" value={q} />}
-                {memberType && <input type="hidden" name="type" value={memberType} />}
-                <div className="flex flex-wrap items-center gap-2">
-                  <select
-                    name="committee"
-                    value={committee ?? ""}
-                    onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                    className="flex-1 min-w-0 w-full sm:w-auto sm:max-w-sm px-3 py-1.5 text-sm rounded-control cursor-pointer"
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      backgroundColor: "var(--color-bg)",
-                      color: "var(--color-text)",
-                    }}
-                  >
-                    <option value="">All committees</option>
-                    {committees.map((c: any) => (
-                      <option key={c.name} value={c.name}>
-                        {c.name.charAt(0).toUpperCase() + c.name.slice(1)} ({c.members})
-                      </option>
-                    ))}
-                  </select>
-                  {committee && (
-                    <Link
-                      to={`?${new URLSearchParams({ ...(house ? { house } : {}), sort, ...(q ? { q } : {}), ...(memberType ? { type: memberType } : {}) })}`}
-                      className="text-xs px-2 py-1.5 rounded"
-                      style={{
-                        border: "1px solid var(--color-border)",
-                        color: "var(--color-muted)",
-                      }}
-                    >
-                      Clear
-                    </Link>
-                  )}
-                </div>
-              </Form>
-            </div>
-          ) : null
+      {activeChips.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {activeChips.map((chip) => {
+            const group = groups.find((g) => g.key === chip.key)!;
+            return (
+              <AppliedChip
+                key={chip.key}
+                label={chip.label}
+                onRemove={() =>
+                  navigate(`?${toParams({ ...applied, [chip.key]: group.defaultValue }, q)}`)
+                }
+              />
+            );
+          })}
+        </div>
+      )}
+
+      <div className="mb-8" />
+
+      <FilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        groups={groups}
+        draft={draft}
+        onChange={setDraft}
+        onApply={() => {
+          setSheetOpen(false);
+          navigate(`?${toParams(draft, q)}`);
+        }}
+        applyLabel={
+          draftCount === undefined
+            ? "Show members"
+            : `Show ${draftCount.toLocaleString()} member${draftCount !== 1 ? "s" : ""}`
         }
       />
 
       {members.length === 0 ? (
         <p style={{ color: "var(--color-muted)" }}>No members found.</p>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {members.map((m: any) => {
             const displayName = formatMemberName(m.name);
             return (
@@ -286,4 +314,15 @@ function Badge({ label }: { label: string }) {
       {label}
     </span>
   );
+}
+
+/** URL params for a set of filters, leaving out defaults so links stay short. */
+function toParams(values: FilterValues, q: string | undefined) {
+  const p = new URLSearchParams();
+  if (values.house) p.set("house", values.house);
+  if (values.sort && values.sort !== "name") p.set("sort", values.sort);
+  if (q) p.set("q", q);
+  if (values.committee) p.set("committee", values.committee);
+  if (values.type) p.set("type", values.type);
+  return p;
 }
