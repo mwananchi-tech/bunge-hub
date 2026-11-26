@@ -1,9 +1,7 @@
-import { Form } from "react-router";
-
 import { NoVideoThumbnail } from "~/components/NoVideoThumbnail";
 import { Pagination } from "~/components/Pagination";
 import { PreviewChips, type PreviewItem } from "~/components/PreviewChips";
-import { Button, ButtonLink, buttonClasses } from "~/components/ui/Button";
+import { ButtonLink, buttonClasses } from "~/components/ui/Button";
 import { countSittings, listSittings } from "~/lib/queries/sittings.server";
 import { resolveSourceUrl, sourceHost } from "~/lib/source-urls";
 import { youtubeThumbnail } from "~/lib/youtube";
@@ -11,7 +9,6 @@ import { youtubeThumbnail } from "~/lib/youtube";
 import type { Route } from "./+types/sittings._index";
 
 const LIMIT = 40;
-const YEARS = [2026, 2025, 2024, 2023, 2022];
 
 type SittingListItem = {
   id: string;
@@ -67,12 +64,6 @@ export function meta() {
   ];
 }
 
-const HOUSES = [
-  { value: "", label: "All" },
-  { value: "National Assembly", label: "National Assembly" },
-  { value: "Senate", label: "Senate" },
-];
-
 function formatDate(date: string | Date) {
   return new Date(date).toLocaleDateString("en-KE", {
     weekday: "long",
@@ -80,15 +71,6 @@ function formatDate(date: string | Date) {
     month: "long",
     year: "numeric",
   });
-}
-
-function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span className="w-12 text-xs font-medium uppercase tracking-widest text-muted">{label}</span>
-      <div className="flex flex-wrap gap-1">{children}</div>
-    </div>
-  );
 }
 
 function SittingThumbnail({ s }: { s: SittingListItem }) {
@@ -125,64 +107,13 @@ function SittingThumbnail({ s }: { s: SittingListItem }) {
 }
 
 export default function SittingsIndex({ loaderData }: Route.ComponentProps) {
-  const { sittings, house, year, page, hasMore, totalPages, searchStr } = loaderData;
-
-  function yearUrl(y: number | undefined) {
-    const p = new URLSearchParams();
-    if (house) p.set("house", house);
-    if (y) p.set("year", String(y));
-    return `?${p}`;
-  }
+  const { sittings, page, hasMore, totalPages, searchStr } = loaderData;
 
   return (
     <div className="page-frame py-12">
       <div className="mb-8">
         <h1 className="font-serif text-3xl mb-1">Sittings</h1>
         <p className="text-sm text-muted">13th Parliament</p>
-      </div>
-
-      {/* Filters: house on top, year below */}
-      <div className="mb-8 grid gap-3">
-        <FilterRow label="House">
-          <Form method="get" className="contents">
-            {year && <input type="hidden" name="year" value={year} />}
-            {HOUSES.map((h) => {
-              const active = (house ?? "") === h.value;
-              return (
-                <Button
-                  key={h.value}
-                  name="house"
-                  value={h.value}
-                  type="submit"
-                  variant={active ? "filled" : "outlined"}
-                  aria-pressed={active}
-                >
-                  {h.label}
-                </Button>
-              );
-            })}
-          </Form>
-        </FilterRow>
-        <FilterRow label="Year">
-          <ButtonLink
-            to={yearUrl(undefined)}
-            variant={!year ? "filled" : "outlined"}
-            aria-current={!year ? "page" : undefined}
-          >
-            All
-          </ButtonLink>
-          {YEARS.map((y) => (
-            <ButtonLink
-              key={y}
-              to={yearUrl(y)}
-              variant={year === y ? "filled" : "outlined"}
-              aria-current={year === y ? "page" : undefined}
-              className="tabular-nums"
-            >
-              {y}
-            </ButtonLink>
-          ))}
-        </FilterRow>
       </div>
 
       <div className="divide-y divide-border">

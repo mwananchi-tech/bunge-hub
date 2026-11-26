@@ -1,6 +1,5 @@
 import { Link } from "react-router";
 
-import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
 import { fromParam } from "~/lib/navigation";
 import { type BillSort, countBills, listBills } from "~/lib/queries/bills.server";
@@ -17,13 +16,6 @@ const STAGES_ORDER = [
   "Mediation Approval",
   "Presidential Reservations",
   "Publication Period Reduction",
-];
-
-const SORT_OPTIONS = [
-  { value: "recent", label: "Most recent" },
-  { value: "most-debated", label: "Most debated" },
-  { value: "most-speeches", label: "Most speeches" },
-  { value: "name", label: "A to Z" },
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -62,7 +54,7 @@ export function meta() {
 }
 
 export default function BillsIndex({ loaderData }: Route.ComponentProps) {
-  const { bills, q, sort, page, hasMore, totalPages, searchStr } = loaderData;
+  const { bills, sort, page, hasMore, totalPages, searchStr } = loaderData;
 
   return (
     <div className="page-frame py-12">
@@ -72,13 +64,6 @@ export default function BillsIndex({ loaderData }: Route.ComponentProps) {
           Legislative tracker · 13th Parliament
         </p>
       </div>
-
-      <PageToolbar
-        q={q}
-        searchPlaceholder="Search bills…"
-        filterGroups={[]}
-        sort={{ current: sort, options: SORT_OPTIONS }}
-      />
 
       <div className="divide-y divide-border">
         {bills.length === 0 && (

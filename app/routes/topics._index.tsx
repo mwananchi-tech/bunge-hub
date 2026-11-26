@@ -1,8 +1,5 @@
-import { useState } from "react";
 import { Link } from "react-router";
 
-import { FilterButton, FilterPanel } from "~/components/FilterPanel";
-import { PageToolbar } from "~/components/PageToolbar";
 import { Pagination } from "~/components/Pagination";
 import { fromParam } from "~/lib/navigation";
 import { countTopics, listTopics } from "~/lib/queries/topics.server";
@@ -51,9 +48,7 @@ export function meta() {
 }
 
 export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
-  const { topics, tab, q, house, sort, page, hasMore, totalPages, searchStr } = loaderData;
-  const activeFilterCount = [house, tab !== "" ? "active" : ""].filter(Boolean).length;
-  const [showFilters, setShowFilters] = useState(false);
+  const { topics, page, hasMore, totalPages, searchStr } = loaderData;
 
   return (
     <div className="page-frame py-12">
@@ -63,71 +58,6 @@ export default function TopicsIndex({ loaderData }: Route.ComponentProps) {
           Questions, statements, and hearings · 13th Parliament
         </p>
       </div>
-
-      <PageToolbar
-        q={q}
-        searchPlaceholder="Search topics…"
-        hiddenParams={{ ...(tab ? { tab } : {}), ...(house ? { house } : {}) }}
-        filterGroups={[]}
-        sort={{
-          paramName: "sort",
-          current: sort,
-          options: [
-            { value: "recent", label: "Most recent" },
-            { value: "most-speeches", label: "Most speeches" },
-          ],
-        }}
-        extraActions={
-          <FilterButton activeCount={activeFilterCount} onClick={() => setShowFilters((v) => !v)} />
-        }
-      />
-
-      <FilterPanel
-        isOpen={showFilters}
-        clearUrl={`?${new URLSearchParams({ ...(sort !== "recent" ? { sort } : {}), ...(q ? { q } : {}) })}`}
-        groups={[
-          {
-            label: "Type",
-            paramName: "tab",
-            current: tab,
-            options: [
-              { value: "", label: "All" },
-              {
-                value: "qs",
-                label: "Questions & Statements",
-                tooltip:
-                  "Member-initiated items: oral questions, written statements, and notices of motion tabled for debate.",
-              },
-              {
-                value: "hearings",
-                label: "Hearings",
-                tooltip:
-                  "Procedural communications from the Speaker or presiding officer: announcements, rulings, and tributes.",
-              },
-            ],
-            preserveParams: {
-              ...(sort !== "recent" ? { sort } : {}),
-              ...(q ? { q } : {}),
-              ...(house ? { house } : {}),
-            },
-          },
-          {
-            label: "House",
-            paramName: "house",
-            current: house ?? "",
-            options: [
-              { value: "", label: "Both" },
-              { value: "National Assembly", label: "National Assembly" },
-              { value: "Senate", label: "Senate" },
-            ],
-            preserveParams: {
-              ...(tab ? { tab } : {}),
-              ...(sort !== "recent" ? { sort } : {}),
-              ...(q ? { q } : {}),
-            },
-          },
-        ]}
-      />
 
       {topics.length === 0 ? (
         <p style={{ color: "var(--color-muted)" }}>No topics found.</p>
