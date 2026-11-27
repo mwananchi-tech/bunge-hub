@@ -5,7 +5,7 @@ import { CommandPalette } from "./CommandPalette";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_LINKS = [
-  { to: "/members", label: "Representatives" },
+  { to: "/members", label: "Members" },
   { to: "/bills", label: "Bills" },
   { to: "/topics", label: "Topics" },
   { to: "/sittings", label: "Sittings" },
@@ -32,8 +32,9 @@ function useShortcutLabel() {
 export function Nav() {
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const shortcutLabel = useShortcutLabel();
+  // Home and Members have their own search bar in the page, so the header hides its search button there (one search per screen)
+  const pageHasSearch = location.pathname === "/" || location.pathname === "/members";
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -80,7 +81,8 @@ export function Nav() {
 
           <div className="page-frame flex-1 h-14 flex items-center gap-8">
             {/* lg:-ml-3 cancels the link padding so the first letter of the first link sits on the frame edge */}
-            <nav className="hidden sm:flex items-center gap-1 flex-1 lg:-ml-3">
+            {/* Below 768px these links move to the bottom tab bar (BottomNav) */}
+            <nav className="hidden md:flex items-center gap-1 flex-1 lg:-ml-3">
               {NAV_LINKS.map(({ to, label }) => {
                 const active = location.pathname.startsWith(to);
                 return (
@@ -103,7 +105,8 @@ export function Nav() {
             <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-2 px-3 h-8 rounded-control text-sm"
+                aria-label="Search"
+                className={`${pageHasSearch ? "hidden" : "flex"} items-center justify-center gap-2 size-11 md:size-auto md:px-3 md:h-8 rounded-control text-sm`}
                 style={{
                   border: "1px solid var(--color-border)",
                   color: "var(--color-muted)",
@@ -122,9 +125,9 @@ export function Nav() {
                     d="M6.5 12a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM14 14l-3-3"
                   />
                 </svg>
-                <span className="hidden sm:inline">Search</span>
+                <span className="hidden md:inline">Search</span>
                 <kbd
-                  className="hidden sm:inline text-xs px-1 rounded"
+                  className="hidden md:inline text-xs px-1 rounded"
                   style={{ border: "1px solid var(--color-border)" }}
                 >
                   {shortcutLabel}
@@ -133,70 +136,9 @@ export function Nav() {
 
               {/* Last item: its right edge is the page frame's right edge */}
               <ThemeToggle />
-
-              {/* Hamburger — mobile only */}
-              <button
-                className="sm:hidden p-1.5 rounded"
-                style={{ color: "var(--color-muted)" }}
-                onClick={() => setMenuOpen((o) => !o)}
-                aria-label="Toggle menu"
-              >
-                {menuOpen ? (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  </svg>
-                )}
-              </button>
             </div>
           </div>
         </div>
-
-        {/* Mobile menu */}
-        {menuOpen && (
-          <div
-            className="sm:hidden border-t px-6 py-3 flex flex-col gap-1"
-            style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
-          >
-            {NAV_LINKS.map(({ to, label }) => {
-              const active = location.pathname.startsWith(to);
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  onClick={() => setMenuOpen(false)}
-                  className="px-3 py-2 rounded text-sm"
-                  style={{
-                    color: active ? "var(--color-accent)" : "var(--color-muted)",
-                    backgroundColor: active ? "var(--color-surface)" : "transparent",
-                    fontWeight: active ? 500 : 400,
-                  }}
-                >
-                  {label}
-                </Link>
-              );
-            })}
-          </div>
-        )}
       </header>
 
       <CommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
