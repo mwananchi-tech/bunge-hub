@@ -63,7 +63,7 @@ export async function loader() {
 
 export function meta() {
   const description =
-    "Kenya's parliamentary record, open and searchable. Every sitting, bill and representative of the 13th Parliament.";
+    "Kenya's parliamentary record, open and searchable. Every sitting, bill and member of the 13th Parliament.";
   return [
     { title: "Bunge Hub | Kenya's Parliament, open to every mwananchi" },
     { name: "description", content: description },
@@ -85,7 +85,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           Kenya&apos;s Parliament, open to every mwananchi.
         </h1>
         <p className="max-w-xl text-muted sm:text-lg">
-          Every sitting, bill and representative of the 13th Parliament, searchable.
+          Every sitting, bill and member of the 13th Parliament, searchable.
         </p>
       </div>
 
@@ -96,16 +96,16 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         className="mb-6 flex h-11 w-full cursor-pointer items-center gap-2 rounded-control border border-border bg-surface px-4 text-left text-sm text-muted transition-colors hover:border-muted sm:h-10"
       >
         <SearchIcon />
-        <span className="truncate">Search a representative, county, bill or topic</span>
+        <span className="truncate">Search a member, county, bill or topic</span>
       </button>
 
       {latestSitting && <LatestSittingCard s={latestSitting} />}
 
       <section className="mb-12">
         <SectionHeader
-          title="The representatives"
+          title="The members"
           href="/members"
-          linkLabel="All representatives"
+          linkLabel="All members"
         />
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
           <StatTile value={stats.mps} label="MPs" to="/members?house=National+Assembly" />

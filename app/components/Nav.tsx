@@ -5,7 +5,7 @@ import { CommandPalette } from "./CommandPalette";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_LINKS = [
-  { to: "/members", label: "Representatives" },
+  { to: "/members", label: "Members" },
   { to: "/bills", label: "Bills" },
   { to: "/topics", label: "Topics" },
   { to: "/sittings", label: "Sittings" },
